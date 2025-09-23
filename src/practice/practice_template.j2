@@ -4,6 +4,7 @@
 
 </div>
 
+<br>
 
 <div align='right'>
 
@@ -24,7 +25,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;{{ choice.id }}. {{ choice.content }}
 {% endfor %}
 
-
 {% endfor %}
 
 {% elif section.type == "calculation" %}
@@ -33,9 +33,6 @@
 {% for question in section.questions %}
 **{{ loop.index }}.** {{ question.question }}
 
-<br>
-<br>
-<br>
 <br>
 <br>
 <br>

@@ -141,6 +141,8 @@ class CompleteSession:
         shutil.copy2(image_path, target_path)
 
         # 更新图片列表
+        if "images" not in self.data:
+            self.data["images"] = []
         self.data["images"].append(target_path)
         self.save()
 

@@ -38,7 +38,7 @@ class MathHelperApp:
 
             # 根据知识点生成练习
             practice = practice_manager.create_practice_by_knowledge_points(
-                title=f"数学练习 - {prompt[:]}",
+                title=f"数学练习",
                 knowledge_points=knowledge_point_names,
                 choice_count=2,
                 calculation_count=2,
@@ -348,9 +348,12 @@ def create_interface():
     """创建完整的Gradio界面"""
     app = MathHelperApp()
 
-    with gr.Blocks(title="AIMath Helper - 完整版", theme=gr.themes.Soft()) as demo:
+    with gr.Blocks(
+        title="AIMath Helper - 完整版",
+        theme=gr.themes.Soft(),
+        css=".practice_md {width: 750px !important;}",
+    ) as demo:
         gr.Markdown("# 🧮 AIMath Helper - 数学练习助手")
-        gr.Markdown("## 功能：出题 → 学生答题 → 批改 → 错误分析 → 针对性练习")
 
         with gr.Row():
             session_dropdown = gr.Dropdown(
@@ -382,6 +385,7 @@ def create_interface():
             value="",
             visible=True,
             elem_id="practice_markdown",
+            elem_classes=["practice_md"],
             show_copy_button=True,
             container=True,
             latex_delimiters=[
@@ -406,8 +410,8 @@ def create_interface():
             show_label=True,
             elem_id="images_gallery",
             columns=4,
-            rows=3,
-            height=200,
+            rows=5,
+            height=400,
             object_fit="cover",
         )
 
