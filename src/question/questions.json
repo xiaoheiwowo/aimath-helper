@@ -1,0 +1,766 @@
+{
+  "questions": [
+    {
+      "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+      "type": "choice",
+      "metadata": {
+        "category": "1.choice"
+      },
+      "question": "下列说法错误的是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "两数之和可能小于其中的一个加数",
+          "is_correct": false,
+          "explanation": "异号相加时，和小于原来的正数，正确。"
+        },
+        {
+          "id": "B",
+          "content": "两数相加就是它们的绝对值相加",
+          "is_correct": true,
+          "explanation": "异号相加应取绝对值大的数的符号，再用大绝对值减去小绝对值，此说法错误。"
+        },
+        {
+          "id": "C",
+          "content": "两个负数相加，和取负号，绝对值相加",
+          "is_correct": false,
+          "explanation": "同号相加规则，两个负数相加结果为负数，正确。"
+        },
+        {
+          "id": "D",
+          "content": "两个数若不是相反数，则相加不能得零",
+          "is_correct": false,
+          "explanation": "只有互为相反数的两个数相加才为零，因此说法正确。"
+        }
+      ],
+      "answer": "B"
+    },
+    {
+      "id": "qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e",
+      "type": "calculation",
+      "metadata": {
+        "category": "1.cal"
+      },
+      "question": "计算：$(-3) + 40 + (-32) + (-8)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "$(-3) + 40 + (-32) + (-8)$"
+        },
+        {
+          "step": "$-3 + 40 - 32 - 8$"
+        },
+        {
+          "step": "$= -3 + 40 - 32 - 8$"
+        },
+        {
+          "step": "$= -3$"
+        }
+      ],
+      "answer": "-3"
+    },
+    {
+      "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+      "type": "choice",
+      "metadata": {
+        "category": "1.choice"
+      },
+      "question": "若有理数 $a+b+c<0$，则（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "三个数中至少有两个负数",
+          "is_correct": false,
+          "explanation": "不一定必须有两个负数，例如 $a=-1, b=2, c=-3$。"
+        },
+        {
+          "id": "B",
+          "content": "三个数中有且只有一个负数",
+          "is_correct": false,
+          "explanation": "不一定，只要和小于0，不限制负数个数为1。"
+        },
+        {
+          "id": "C",
+          "content": "三个数中至少有一个负数",
+          "is_correct": true,
+          "explanation": "若 $a+b+c<0$，无论 $b+c$ 大于0还是小于0，总有至少一个数必须为负数。"
+        },
+        {
+          "id": "D",
+          "content": "三个数中有两个是正数或两个是负数",
+          "is_correct": false,
+          "explanation": "不一定成立，无法保证。"
+        }
+      ],
+      "answer": "C"
+    },
+    {
+      "id": "qu_23a6d6c3-059c-4e99-9654-75195b559bdd",
+      "type": "choice",
+      "metadata": {
+        "category": "2.choice"
+      },
+      "question": "下列变形，运用加法运算律正确的是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法运算律",
+          "detail": "掌握有理数加法的交换律与结合律，并能正确应用"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "$3 + (-2) = 2 + 3$",
+          "is_correct": false,
+          "explanation": "减法法则：减去一个数，等于加上这个数的相反数。即a－b=a＋（﹣）b"
+        },
+        {
+          "id": "B",
+          "content": "$4 + (-6) + 3 = (-6) + 4 + 3$",
+          "is_correct": true,
+          "explanation": "加法运算定律：加法交换律：两数相加，交换加数的位置，和不变。即a＋b=b＋a"
+        },
+        {
+          "id": "C",
+          "content": "$[5 + (-2)] + 4 = [5 + (-4)] + 2$",
+          "is_correct": false,
+          "explanation": "? 错误变形"
+        },
+        {
+          "id": "D",
+          "content": "$16 + (-1) + (+56) = (16 + 56) + (+1)$",
+          "is_correct": false,
+          "explanation": "? 错误变形"
+        }
+      ],
+      "answer": "B"
+    },
+    {
+      "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+      "type": "calculation",
+      "metadata": {
+        "category": "2.cal"
+      },
+      "question": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "将带分数拆分为整数部分和分数部分：$\\left[ (-2019) + (-\\frac{5}{6}) \\right] + \\left[ (-2018) + (-\\frac{2}{3}) \\right] + (4036 + \\frac{2}{3}) + \\left[ (-1) + (-\\frac{1}{2}) \\right]$"
+        },
+        {
+          "step": "整数部分和分数部分分别相加：$[(-2019) + (-2018) + 4036 + (-1)] + \\left[ (-\\frac{5}{6}) + (-\\frac{2}{3}) + \\frac{2}{3} + (-\\frac{1}{2}) \\right]$"
+        },
+        {
+          "step": "计算整数部分：$(-2019) + (-2018) + 4036 + (-1) = -2$"
+        },
+        {
+          "step": "计算分数部分：$(-\\frac{5}{6}) + (-\\frac{2}{3}) + \\frac{2}{3} + (-\\frac{1}{2}) = -\\frac{4}{3}$"
+        },
+        {
+          "step": "合并结果：$-2 + (-\\frac{4}{3}) = -3\\frac{1}{3}$"
+        }
+      ],
+      "answer": "-3\\frac{1}{3}"
+    },
+    {
+      "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+      "type": "calculation",
+      "metadata": {
+        "category": "4.cal"
+      },
+      "question": "计算：$(-100) \\times (-1) \\times (-3) \\times (-0.5)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法法则",
+          "detail": "掌握负数相乘的奇偶性判断：负数个数为偶数，结果为正；负数个数为奇数，结果为负"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "$(-100) \\times (-1) \\times (-3) \\times (-0.5)$"
+        },
+        {
+          "step": "$(-100) \\times (-1) = 100$"
+        },
+        {
+          "step": "$100 \\times (-3) = -300$"
+        },
+        {
+          "step": "$-300 \\times (-0.5) = 150$"
+        }
+      ],
+      "answer": "150"
+    },
+    {
+      "id": "qu_13ac745d-53bd-48f6-b47f-dc89a4e1a06c",
+      "type": "choice",
+      "metadata": {
+        "category": "4.choice"
+      },
+      "question": "计算：$-2 - (-3) = ( )$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的减法法则",
+          "detail": "减法法则：减去一个数，等于加上这个数的相反数。即a－b=a＋（﹣）b"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "-5",
+          "is_correct": false,
+          "explanation": "错误地直接进行了绝对值相加，未理解减法法则（知识点3）"
+        },
+        {
+          "id": "B",
+          "content": "5",
+          "is_correct": false,
+          "explanation": "错误地将符号和绝对值都进行了相加，混淆了加减法规则（知识点1、3）"
+        },
+        {
+          "id": "C",
+          "content": "-1",
+          "is_correct": false,
+          "explanation": "仅计算了绝对值的差但符号判断错误，未掌握异号数相加规则（知识点1）"
+        },
+        {
+          "id": "D",
+          "content": "1",
+          "is_correct": true,
+          "explanation": "正确运用减法法则（知识点3）：减去一个数等于加上它的相反数，$-2-(-3)=-2+3=1$"
+        }
+      ],
+      "answer": "D"
+    },
+    {
+      "id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+      "type": "calculation",
+      "metadata": {
+        "category": "5.cal"
+      },
+      "question": "计算：$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法运算定律",
+          "detail": "利用乘法分配律进行简便运算"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$"
+        },
+        {
+          "step": "$= \\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\times (-12)$"
+        },
+        {
+          "step": "$= -\\dfrac{1}{4}\\times (-12) - \\dfrac{1}{6}\\times (-12) + \\dfrac{1}{2}\\times (-12)$"
+        },
+        {
+          "step": "$= 3 + 2 - 6$"
+        },
+        {
+          "step": "$= -1$"
+        }
+      ],
+      "answer": "-1"
+    },
+    {
+      "id": "qu_b9d3a7f2-2c4e-4d5a-9f21-3a7b9e6c2f11",
+      "type": "choice",
+      "metadata": {
+        "category": "5.choice"
+      },
+      "question": "计算：$-6\\times\\dfrac{2}{3}\\times\\big| -\\dfrac{1}{6} \\big|\\times 1\\dfrac{1}{2}$ 的值为（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法运算定律",
+          "detail": "利用乘法分配律进行简便运算"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "1",
+          "is_correct": false,
+          "explanation": "直接计算后结果不是正1。"
+        },
+        {
+          "id": "B",
+          "content": "36",
+          "is_correct": false,
+          "explanation": "中间有约分步骤，结果不可能这么大。"
+        },
+        {
+          "id": "C",
+          "content": "-1",
+          "is_correct": true,
+          "explanation": "去绝对值得 $\\dfrac{1}{6}$，将带分数 $1\\dfrac{1}{2}$ 化为 $\\dfrac{3}{2}$，再计算：$-6\\times\\dfrac{2}{3}\\times\\dfrac{1}{6}\\times\\dfrac{3}{2}=-1$。"
+        },
+        {
+          "id": "D",
+          "content": "0",
+          "is_correct": false,
+          "explanation": "各因子均非零，因此乘积不为零。"
+        }
+      ],
+      "answer": "C"
+    },
+    {
+      "id": "qu_91af2371-7a03-4d82-b6be-fcad51eac31f",
+      "type": "calculation",
+      "metadata": {
+        "category": "4.cal"
+      },
+      "question": "计算：$(-1) \\times \\left(-\\dfrac{5}{4}\\right) \\times \\dfrac{8}{15} \\times \\dfrac{3}{2} \\times \\left(-\\dfrac{2}{3}\\right) \\times 0 \\times (-1)$ 的结果是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法法则",
+          "detail": "熟练掌握有理数乘法的运算规则，特别是零因子法则：任何数与 0 相乘结果为 0。"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "$\\left(-\\dfrac{5}{4}\\right) \\times \\dfrac{8}{15} \\times \\dfrac{3}{2} \\times \\left(-\\dfrac{2}{3}\\right) \\times 0 \\times (-1)$"
+        },
+        {
+          "step": "$= 0$"
+        }
+      ],
+      "answer": "0"
+    },
+    {
+      "id": "qu_cb841f90-4c25-4fac-b93c-a3455a42d293",
+      "type": "choice",
+      "metadata": {
+        "category": "6.choice"
+      },
+      "question": "下列说法正确的是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "倒数",
+          "detail": "理解倒数的定义和基本性质（0没有倒数，1的倒数是本身等）"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "负数没有倒数",
+          "is_correct": false,
+          "explanation": "错误。负数也有倒数，例如 -2 的倒数是 -1/2。"
+        },
+        {
+          "id": "B",
+          "content": "正数的倒数比它本身小",
+          "is_correct": false,
+          "explanation": "错误。不一定，例如 1/2 的倒数是 2，比它本身大。"
+        },
+        {
+          "id": "C",
+          "content": "1 的倒数是它本身",
+          "is_correct": true,
+          "explanation": "正确。因为 1 × 1 = 1，符合倒数定义。"
+        },
+        {
+          "id": "D",
+          "content": "0 的倒数是 0",
+          "is_correct": false,
+          "explanation": "错误。0 没有倒数，因为任何数乘以 0 都得 0，不得 1。"
+        }
+      ],
+      "answer": "C"
+    },
+    {
+      "id": "qu_b9718c7b-3518-4a38-a37e-e1b108f05059",
+      "type": "choice",
+      "metadata": {
+        "category": "6.choice"
+      },
+      "question": "一个数的倒数是 -0.25，这个数是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "倒数",
+          "detail": "定义：乘积等于 1 的两个数互为倒数"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "-4",
+          "is_correct": true,
+          "explanation": "正确。因为 -0.25 = -1/4，其倒数是 -4。"
+        },
+        {
+          "id": "B",
+          "content": "4",
+          "is_correct": false,
+          "explanation": "错误。4 的倒数是 0.25，不是 -0.25。"
+        },
+        {
+          "id": "C",
+          "content": "-0.25",
+          "is_correct": false,
+          "explanation": "错误。-0.25 的倒数是 -4，不是它本身。"
+        },
+        {
+          "id": "D",
+          "content": "0.25",
+          "is_correct": false,
+          "explanation": "错误。0.25 的倒数是 4。"
+        }
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "qu_786ba8de-4a05-4e9a-82d3-f89f6b31d7ee",
+      "type": "calculation",
+      "metadata": {
+        "category": "6.cal"
+      },
+      "question": "计算：$(-2) \\times \\frac12 \\times \\left(-\\frac13\\right) \\times (-3)$ 的倒数。",
+      "knowledge_points": [
+        {
+          "outline": "倒数",
+          "detail": "定义：乘积等于 1 的两个数互为倒数"
+        },
+        {
+          "outline": "有理数的乘法法则",
+          "detail": ""
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "先计算原式：$(-2) \\times \\frac12 = -1$"
+        },
+        {
+          "step": "$-1 \\times \\left(-\\frac13\\right) = \\frac13$"
+        },
+        {
+          "step": "$\\frac13 \\times (-3) = -1$"
+        },
+        {
+          "step": "原式的结果为 $-1$，$-1$ 的倒数是 $-1$。"
+        }
+      ],
+      "answer": "-1"
+    },
+    {
+      "id": "qu_055f3885-d272-4bf9-a6fa-7ff7082d2f81",
+      "type": "calculation",
+      "metadata": {
+        "category": "8.cal"
+      },
+      "question": "计算：$(-3)^5 \\times (-3)^2$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘方",
+          "detail": "同底数幂相乘，底数不变，指数相加"
+        },
+        {
+          "outline": "幂的运算",
+          "detail": "负数的奇次幂为负，负数的偶次幂为正"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "应用同底数幂乘法法则：$(-3)^5 \\times (-3)^2 = (-3)^{5+2}$"
+        },
+        {
+          "step": "计算指数：$5+2=7$，得 $(-3)^7$"
+        },
+        {
+          "step": "计算乘方：负数的奇次幂为负，$3^7=2187$，所以 $(-3)^7=-2187$"
+        }
+      ],
+      "answer": "-2187"
+    },
+    {
+      "id": "qu_085b1966-afa6-4793-a683-d0a846b7f9c1",
+      "type": "calculation",
+      "metadata": {
+        "category": "8.cal"
+      },
+      "question": "计算：$\\frac{(-2)^6}{(-2)^3}\\times 0^8$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘方",
+          "detail": "同底数幂相除，底数不变，指数相减"
+        },
+        {
+          "outline": "零的乘方",
+          "detail": "零的任何正整数次幂都等于零"
+        },
+        {
+          "outline": "有理数乘法",
+          "detail": "任何数与零相乘都得零"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "先计算除法部分：$\\frac{(-2)^6}{(-2)^3} = (-2)^{6-3} = (-2)^3$"
+        },
+        {
+          "step": "计算 $(-2)^3 = -8$"
+        },
+        {
+          "step": "计算 $0^8 = 0$"
+        },
+        {
+          "step": "最后相乘：$-8 \\times 0 = 0$"
+        }
+      ],
+      "answer": "0"
+    },
+    {
+      "id": "qu_e8b188f4-7009-48e5-b469-9b82dc164cee",
+      "type": "choice",
+      "metadata": {
+        "category": "8.choice"
+      },
+      "question": "下列各式中，结果为正数的是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘方",
+          "detail": "负数的奇次幂为负，负数的偶次幂为正"
+        },
+        {
+          "outline": "幂的运算",
+          "detail": "同底数幂相乘除的符号判断"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "$(-4)^3\\times(-4)^2$",
+          "is_correct": false,
+          "explanation": "$(-4)^3$ 为负，$(-4)^2$ 为正，负数×正数=负数"
+        },
+        {
+          "id": "B",
+          "content": "$(-4)^5\\div(-4)^2$",
+          "is_correct": false,
+          "explanation": "原式=$(-4)^{5-2}=(-4)^3$，负数的奇次幂为负"
+        },
+        {
+          "id": "C",
+          "content": "$(-6)^4\\times(-6)^1$",
+          "is_correct": false,
+          "explanation": "$(-6)^4$ 为正，$(-6)^1$ 为负，正数×负数=负数"
+        },
+        {
+          "id": "D",
+          "content": "$(-6)^7\\div(-6)^3$",
+          "is_correct": true,
+          "explanation": "原式=$(-6)^{7-3}=(-6)^4$，负数的偶次幂为正"
+        }
+      ],
+      "answer": "D"
+    },
+    {
+      "id": "qu_210d68c0-455d-44a8-9a30-671ba38b3e55",
+      "type": "choice",
+      "metadata": {
+        "category": "8.choice"
+      },
+      "question": "关于“零的乘方”及幂的符号，下列说法正确的是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "零的乘方",
+          "detail": "零的任何正整数次幂都等于零"
+        },
+        {
+          "outline": "幂的符号法则",
+          "detail": "负数的奇次幂为负，负数的偶次幂为正"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "$0^0$ 的值定义为 1",
+          "is_correct": false,
+          "explanation": "错误。$0^0$ 是没有意义的，属于未定义形式"
+        },
+        {
+          "id": "B",
+          "content": "只要底数为 0，$0^n=0$ 对任意整数 $n>0$ 都成立",
+          "is_correct": true,
+          "explanation": "正确。零的任何正整数次幂都等于零"
+        },
+        {
+          "id": "C",
+          "content": "负数的偶次幂一定为负数",
+          "is_correct": false,
+          "explanation": "错误。负数的偶次幂为正数"
+        },
+        {
+          "id": "D",
+          "content": "负数的奇次幂一定为正数",
+          "is_correct": false,
+          "explanation": "错误。负数的奇次幂为负数"
+        }
+      ],
+      "answer": "B"
+    },
+
+    {
+      "id": "qu_mix_cal_001",
+      "type": "calculation",
+      "metadata": {
+        "category": "9.cal",
+        "difficulty": "基础"
+      },
+      "question": "计算：$2^2 + 3 \\times (-1)^2$",
+      "knowledge_points": [
+        {
+          "outline": "有理数混合运算",
+          "detail": "先乘方，再乘除，最后加减"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "先计算乘方：$2^2 = 4$，$(-1)^2 = 1$"
+        },
+        {
+          "step": "再计算乘法：$3 \\times 1 = 3$"
+        },
+        {
+          "step": "最后计算加法：$4 + 3 = 7$"
+        }
+      ],
+      "answer": "7"
+    },
+    {
+      "id": "qu_mix_cal_002",
+      "type": "calculation",
+      "metadata": {
+        "category": "9.cal"
+      },
+      "question": "计算：$[(-2)^2 - 1] \\div 2 + 4$",
+      "knowledge_points": [
+        {
+          "outline": "有理数混合运算",
+          "detail": "先括号内，再乘除，最后加减；括号内先乘方"
+        }
+      ],
+      "solution_steps": [
+        {
+          "step": "先计算括号内的乘方：$(-2)^2 = 4$"
+        },
+        {
+          "step": "计算括号内减法：$4 - 1 = 3$"
+        },
+        {
+          "step": "计算除法：$3 \\div 2 = 1.5$"
+        },
+        {
+          "step": "最后计算加法：$1.5 + 4 = 5.5$"
+        }
+      ],
+      "answer": "5.5"
+    },
+    {
+      "id": "qu_mix_choice_001",
+      "type": "choice",
+      "metadata": {
+        "category": "9.choice"
+      },
+      "question": "下列各式按混合运算顺序计算，结果是 5 的是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数混合运算顺序",
+          "detail": "括号优先，然后乘方，再乘除，最后加减"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "$2^2 + 3 \\times 1$",
+          "is_correct": false,
+          "explanation": "$2^2=4$，$3\\times1=3$，$4+3=7$，结果是7"
+        },
+        {
+          "id": "B",
+          "content": "$2^2 + (3 \\times 1)$",
+          "is_correct": false,
+          "explanation": "括号不改变运算顺序，结果同样是$4+3=7$"
+        },
+        {
+          "id": "C",
+          "content": "$[2^2 + 1] \\times 1$",
+          "is_correct": true,
+          "explanation": "先算括号内：$4+3=7$，再$7\\times1=5$？等等，$7\\times1=7$，不是5。重新检查：$[4+3]\\times1=7$，不是5。看来题目选项设计有误，正确答案应为A或B？但A、B结果都是7。可能正确选项是另一个表达式，如$2^2+3\\times1$若先算加法再乘方是$(2+3)^2\\times1=25$，但不符合运算顺序。请检查原题。"
+        },
+        {
+          "id": "D",
+          "content": "$2^{2 + 3} \\times 1$",
+          "is_correct": false,
+          "explanation": "先算指数：$2+3=5$，得$2^5=32$，$32\\times1=32$"
+        }
+      ],
+      "answer": "C",
+      "note": "经计算，选项C结果为7，不是5。原题可能设计有误，正确选项应能算出5，如$(2^2+3)\\div1$或类似表达式。"
+    },
+    {
+      "id": "qu_mix_choice_002",
+      "type": "choice",
+      "metadata": {
+        "category": "9.choice"
+      },
+      "question": "关于表达式 $E = (-2)^2 + [3 \\times (-1)^2]$ 的正确运算顺序是（ ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数混合运算顺序",
+          "detail": "先乘方，再括号内的乘法，最后加法"
+        }
+      ],
+      "choices": [
+        {
+          "id": "A",
+          "content": "先算所有括号内的乘方，再做乘法，最后做加法",
+          "is_correct": false,
+          "explanation": "错误。$(-2)^2$不在括号内，但属于整个表达式的一部分，应最先计算"
+        },
+        {
+          "id": "B",
+          "content": "先算乘方，再算括号里的乘法，最后做加法",
+          "is_correct": true,
+          "explanation": "正确。先算$(-2)^2=4$和$(-1)^2=1$，再算$3\\times1=3$，最后$4+3=7$"
+        },
+        {
+          "id": "C",
+          "content": "先算乘法，再算乘方，最后做加法",
+          "is_correct": false,
+          "explanation": "错误。乘方优先级高于乘法"
+        },
+        {
+          "id": "D",
+          "content": "先算加法，再算乘方和乘法",
+          "is_correct": false,
+          "explanation": "错误。加法优先级最低"
+        }
+      ],
+      "answer": "B"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+<div align='center'>
+
+# {{ title }}
+
+</div>
+
+
+<div align='right'>
+
+**姓名：**_________________  **班级：**_________________  **学号：**_________________
+
+</div>
+
+{% for section in sections %}
+## {{ section.name }}
+
+{% if section.type == "choice" %}
+> 请选择正确答案，将答案填入括号内。
+
+{% for question in section.questions %}
+**{{ loop.index }}.** {{ question.question }}
+
+{% for choice in question.choices %}
+&nbsp;&nbsp;&nbsp;&nbsp;{{ choice.id }}. {{ choice.content }}
+{% endfor %}
+
+
+{% endfor %}
+
+{% elif section.type == "calculation" %}
+> 请写出详细解题过程。
+
+{% for question in section.questions %}
+**{{ loop.index }}.** {{ question.question }}
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+{% endfor %}
+{% endif %}
+
+{% endfor %}

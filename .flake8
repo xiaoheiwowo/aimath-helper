@@ -1,0 +1,83 @@
+[flake8]
+# 忽略的错误代码
+ignore = 
+    # E501: 行长度超过79字符
+    E501,
+    # W503: 二元操作符前换行
+    W503,
+    # E203: 冒号前空格
+    E203,
+    # F401: 导入但未使用
+    F401,
+    # F403: 无法解析导入
+    F403,
+    # F405: 可能未定义
+    F405,
+    # E402: 模块级别导入不在文件顶部
+    E402,
+    # W293: 空行包含空白字符
+    W293,
+    # W291: 行尾空白字符
+    W291,
+    # E302: 期望2个空行
+    E302,
+    E303,
+    # E305: 期望2个空行
+    E305,
+    # E266: 注释中#太多
+    E266,
+    # E731: 不要将lambda赋值给变量
+    E731,
+    # F841: 局部变量被赋值但未使用
+    F841,
+    # E722: 不要使用裸露的except
+    E722,
+    # W391: 文件末尾空行
+    W391,
+    C901
+
+# 最大行长度
+max-line-length = 120
+
+# 排除的目录和文件
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .env,
+    .pytest_cache,
+    .mypy_cache,
+    build,
+    dist,
+    *.egg-info,
+    .coverage,
+    htmlcov,
+    .tox,
+    .eggs,
+    .DS_Store,
+    *.pyc,
+    *.pyo,
+    *.pyd,
+    .Python,
+    .vscode,
+    .idea
+
+# 每个文件的最大复杂度
+max-complexity = 10
+
+# 每个函数的最大参数数量
+max-args = 10
+
+# 每个函数的最大局部变量数量
+max-locals = 15
+
+# 每个函数的最大语句数量
+max-statements = 50
+
+# 每个函数的最大分支数量
+max-branches = 12
+
+# 每个函数的最大返回语句数量
+max-returns = 6

@@ -1,0 +1,134 @@
+{
+  "title": "有理数加法练习",
+  "practice_id": "example_001",
+  "sections": [
+    {
+      "name": "一、选择题",
+      "type": "choice",
+      "question_ids": [
+        "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+        "qu_23a6d6c3-059c-4e99-9654-75195b559bdd"
+      ],
+      "questions": [
+        {
+          "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+          "type": "choice",
+          "metadata": {
+            "category": "1.choice"
+          },
+          "question": "下列说法错误的是（ ）",
+          "knowledge_points": [
+            {
+              "outline": "有理数的加法法则",
+              "detail": "掌握同号相加与异号相加的规则，以及相反数的定义"
+            }
+          ],
+          "choices": [
+            {
+              "id": "A",
+              "content": "两数之和可能小于其中的一个加数",
+              "is_correct": false,
+              "explanation": "异号相加时，和小于原来的正数，正确。"
+            },
+            {
+              "id": "B",
+              "content": "两数相加就是它们的绝对值相加",
+              "is_correct": true,
+              "explanation": "异号相加应取绝对值大的数的符号，再用大绝对值减去小绝对值，此说法错误。"
+            },
+            {
+              "id": "C",
+              "content": "两个负数相加，和取负号，绝对值相加",
+              "is_correct": false,
+              "explanation": "同号相加规则，两个负数相加结果为负数，正确。"
+            },
+            {
+              "id": "D",
+              "content": "两个数若不是相反数，则相加不能得零",
+              "is_correct": false,
+              "explanation": "只有互为相反数的两个数相加才为零，因此说法正确。"
+            }
+          ],
+          "answer": "B"
+        },
+        {
+          "id": "qu_23a6d6c3-059c-4e99-9654-75195b559bdd",
+          "type": "choice",
+          "metadata": {
+            "category": "2.choice"
+          },
+          "question": "下列变形，运用加法运算律正确的是（ ）",
+          "knowledge_points": [
+            {
+              "outline": "有理数的加法运算律",
+              "detail": "掌握有理数加法的交换律与结合律，并能正确应用"
+            }
+          ],
+          "choices": [
+            {
+              "id": "A",
+              "content": "$3 + (-2) = 2 + 3$",
+              "is_correct": false,
+              "explanation": "减法法则：减去一个数，等于加上这个数的相反数。即a－b=a＋（﹣）b"
+            },
+            {
+              "id": "B",
+              "content": "$4 + (-6) + 3 = (-6) + 4 + 3$",
+              "is_correct": true,
+              "explanation": "加法运算定律：加法交换律：两数相加，交换加数的位置，和不变。即a＋b=b＋a"
+            },
+            {
+              "id": "C",
+              "content": "$[5 + (-2)] + 4 = [5 + (-4)] + 2$",
+              "is_correct": false,
+              "explanation": "? 错误变形"
+            },
+            {
+              "id": "D",
+              "content": "$16 + (-1) + (+56) = (16 + 56) + (+1)$",
+              "is_correct": false,
+              "explanation": "? 错误变形"
+            }
+          ],
+          "answer": "B"
+        }
+      ]
+    },
+    {
+      "name": "二、计算题",
+      "type": "calculation",
+      "question_ids": ["qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e"],
+      "questions": [
+        {
+          "id": "qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e",
+          "type": "calculation",
+          "metadata": {
+            "category": "1.cal"
+          },
+          "question": "计算：$(-3) + 40 + (-32) + (-8)$",
+          "knowledge_points": [
+            {
+              "outline": "有理数的加法法则",
+              "detail": "掌握同号相加与异号相加的规则"
+            }
+          ],
+          "solution_steps": [
+            {
+              "step": "$(-3) + 40 + (-32) + (-8)$"
+            },
+            {
+              "step": "$-3 + 40 - 32 - 8$"
+            },
+            {
+              "step": "$= -3 + 40 - 32 - 8$"
+            },
+            {
+              "step": "$= -3$"
+            }
+          ],
+          "answer": "-3"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "小明",
+  "practice_id": "",
+  "sections": [
+    {
+      "name": "一、选择题",
+      "type": "choice",
+      "questions": [
+        {
+          "id": "q_01",
+          "answer": {
+            "choice": "A"
+          }
+        },
+        {
+          "id": "q_20",
+          "answer": {
+            "choice": "B"
+          }
+        }
+      ]
+    },
+    {
+      "name": "二、计算题",
+      "type": "calculation",
+      "questions": [
+        {
+          "id": "q_01",
+          "answer": {
+            "solution_steps": ["", ""],
+            "result": "2"
+          }
+        },
+        {
+          "id": "q_20",
+          "answer": {
+            "solution_steps": ["", ""],
+            "result": "2"
+          }
+        }
+      ]
+    }
+  ]
+}
