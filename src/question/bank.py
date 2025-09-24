@@ -94,31 +94,12 @@ class QuestionBank:
     def get_questions_by_knowledge_points(
         self, knowledge_points: List[str]
     ) -> List[Question]:
-        """根据多个知识点获取题目"""
+        """根据多个知识点获取题目（精准匹配）"""
         matching_questions = []
         for q in self.questions:
             for kp in q.knowledge_points:
-                # 检查精确匹配
                 if kp.outline in knowledge_points:
                     matching_questions.append(q)
-                    break
-                # 检查部分匹配（更灵活的匹配）
-                kp_clean = (
-                    kp.outline.replace("的", "").replace("律", "").replace("定", "")
-                )
-                for target_kp in knowledge_points:
-                    target_clean = (
-                        target_kp.replace("的", "").replace("律", "").replace("定", "")
-                    )
-                    # 检查是否包含关键词
-                    if (
-                        ("加法" in kp_clean and "加法" in target_clean)
-                        or ("运算" in kp_clean and "运算" in target_clean)
-                        or ("法则" in kp_clean and "法则" in target_clean)
-                    ):
-                        matching_questions.append(q)
-                        break
-                if q in matching_questions:
                     break
         return matching_questions
 
@@ -128,31 +109,71 @@ class QuestionBank:
         choice_count: int = 2,
         calculation_count: int = 2,
     ) -> List[Question]:
-        """根据知识点随机选择指定数量的题目"""
+        """根据知识点随机选择指定数量的题目，优先匹配知识点，不足时随机补全"""
         # 获取所有匹配知识点的题目
         matching_questions = self.get_questions_by_knowledge_points(knowledge_points)
 
-        # 按类型分组
-        choice_questions = [q for q in matching_questions if q.type == "choice"]
-        calculation_questions = [
+        # 按类型分组匹配的题目
+        matching_choice_questions = [
+            q for q in matching_questions if q.type == "choice"
+        ]
+        matching_calculation_questions = [
             q for q in matching_questions if q.type == "calculation"
         ]
 
-        # 随机选择指定数量的题目
+        # 获取所有题目（用于补全）
+        all_choice_questions = [q for q in self.questions if q.type == "choice"]
+        all_calculation_questions = [
+            q for q in self.questions if q.type == "calculation"
+        ]
+
         selected_questions = []
 
-        if choice_questions:
+        # 优先选择匹配知识点的选择题
+        if matching_choice_questions:
             selected_choices = random.sample(
-                choice_questions, min(choice_count, len(choice_questions))
+                matching_choice_questions,
+                min(choice_count, len(matching_choice_questions)),
             )
             selected_questions.extend(selected_choices)
 
-        if calculation_questions:
+        # 如果匹配的选择题不够，从所有选择题中随机补全
+        remaining_choice_count = choice_count - len(selected_questions)
+        if remaining_choice_count > 0:
+            # 排除已选择的题目
+            available_choices = [
+                q for q in all_choice_questions if q not in selected_questions
+            ]
+            if available_choices:
+                additional_choices = random.sample(
+                    available_choices,
+                    min(remaining_choice_count, len(available_choices)),
+                )
+                selected_questions.extend(additional_choices)
+
+        # 优先选择匹配知识点的计算题
+        if matching_calculation_questions:
             selected_calculations = random.sample(
-                calculation_questions,
-                min(calculation_count, len(calculation_questions)),
+                matching_calculation_questions,
+                min(calculation_count, len(matching_calculation_questions)),
             )
             selected_questions.extend(selected_calculations)
+
+        # 如果匹配的计算题不够，从所有计算题中随机补全
+        remaining_calculation_count = calculation_count - len(
+            [q for q in selected_questions if q.type == "calculation"]
+        )
+        if remaining_calculation_count > 0:
+            # 排除已选择的题目
+            available_calculations = [
+                q for q in all_calculation_questions if q not in selected_questions
+            ]
+            if available_calculations:
+                additional_calculations = random.sample(
+                    available_calculations,
+                    min(remaining_calculation_count, len(available_calculations)),
+                )
+                selected_questions.extend(additional_calculations)
 
         return selected_questions
 
