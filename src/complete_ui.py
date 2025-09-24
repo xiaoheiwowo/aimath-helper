@@ -38,7 +38,7 @@ class MathHelperApp:
 
             # 根据知识点生成练习
             practice = practice_manager.create_practice_by_knowledge_points(
-                title=f"数学练习",
+                title="练习试题",
                 knowledge_points=knowledge_point_names,
                 choice_count=2,
                 calculation_count=2,

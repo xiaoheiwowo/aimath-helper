@@ -443,10 +443,6 @@
         {
           "outline": "倒数",
           "detail": "定义：乘积等于 1 的两个数互为倒数"
-        },
-        {
-          "outline": "有理数的乘法法则",
-          "detail": ""
         }
       ],
       "solution_steps": [
@@ -474,12 +470,8 @@
       "question": "计算：$(-3)^5 \\times (-3)^2$",
       "knowledge_points": [
         {
-          "outline": "有理数的乘方",
-          "detail": "同底数幂相乘，底数不变，指数相加"
-        },
-        {
-          "outline": "幂的运算",
-          "detail": "负数的奇次幂为负，负数的偶次幂为正"
+          "outline": "有理数的乘方法则",
+          "detail": "同底数幂相乘，底数不变，指数相加；负数的奇次幂为负，负数的偶次幂为正"
         }
       ],
       "solution_steps": [
@@ -504,16 +496,8 @@
       "question": "计算：$\\frac{(-2)^6}{(-2)^3}\\times 0^8$",
       "knowledge_points": [
         {
-          "outline": "有理数的乘方",
-          "detail": "同底数幂相除，底数不变，指数相减"
-        },
-        {
-          "outline": "零的乘方",
-          "detail": "零的任何正整数次幂都等于零"
-        },
-        {
-          "outline": "有理数乘法",
-          "detail": "任何数与零相乘都得零"
+          "outline": "有理数的乘方法则",
+          "detail": "同底数幂相除，底数不变，指数相减；零的任何正整数次幂都等于零"
         }
       ],
       "solution_steps": [
@@ -541,12 +525,8 @@
       "question": "下列各式中，结果为正数的是（ ）",
       "knowledge_points": [
         {
-          "outline": "有理数的乘方",
-          "detail": "负数的奇次幂为负，负数的偶次幂为正"
-        },
-        {
-          "outline": "幂的运算",
-          "detail": "同底数幂相乘除的符号判断"
+          "outline": "有理数的乘方法则",
+          "detail": "负数的奇次幂为负，负数的偶次幂为正；同底数幂相乘除的符号判断"
         }
       ],
       "choices": [
@@ -586,12 +566,7 @@
       "question": "关于“零的乘方”及幂的符号，下列说法正确的是（ ）",
       "knowledge_points": [
         {
-          "outline": "零的乘方",
-          "detail": "零的任何正整数次幂都等于零"
-        },
-        {
-          "outline": "幂的符号法则",
-          "detail": "负数的奇次幂为负，负数的偶次幂为正"
+          "outline": "有理数的乘方法则"
         }
       ],
       "choices": [
@@ -622,18 +597,16 @@
       ],
       "answer": "B"
     },
-
     {
-      "id": "qu_mix_cal_001",
+      "id": "qu_b6b598aa-18b6-499a-a770-0809c3cfa04b",
       "type": "calculation",
       "metadata": {
-        "category": "9.cal",
-        "difficulty": "基础"
+        "category": "9.cal"
       },
       "question": "计算：$2^2 + 3 \\times (-1)^2$",
       "knowledge_points": [
         {
-          "outline": "有理数混合运算",
+          "outline": "有理数的混合运算",
           "detail": "先乘方，再乘除，最后加减"
         }
       ],
@@ -651,7 +624,7 @@
       "answer": "7"
     },
     {
-      "id": "qu_mix_cal_002",
+      "id": "qu_ed0b6cc5-0b3a-47e1-b0d5-0258d3e3b834",
       "type": "calculation",
       "metadata": {
         "category": "9.cal"
@@ -659,7 +632,7 @@
       "question": "计算：$[(-2)^2 - 1] \\div 2 + 4$",
       "knowledge_points": [
         {
-          "outline": "有理数混合运算",
+          "outline": "有理数的混合运算",
           "detail": "先括号内，再乘除，最后加减；括号内先乘方"
         }
       ],
@@ -680,7 +653,7 @@
       "answer": "5.5"
     },
     {
-      "id": "qu_mix_choice_001",
+      "id": "qu_0eb5fe01-f434-4189-9a7d-32d3e918a91d",
       "type": "choice",
       "metadata": {
         "category": "9.choice"
@@ -688,7 +661,7 @@
       "question": "下列各式按混合运算顺序计算，结果是 5 的是（ ）",
       "knowledge_points": [
         {
-          "outline": "有理数混合运算顺序",
+          "outline": "有理数的混合运算",
           "detail": "括号优先，然后乘方，再乘除，最后加减"
         }
       ],
@@ -718,11 +691,10 @@
           "explanation": "先算指数：$2+3=5$，得$2^5=32$，$32\\times1=32$"
         }
       ],
-      "answer": "C",
-      "note": "经计算，选项C结果为7，不是5。原题可能设计有误，正确选项应能算出5，如$(2^2+3)\\div1$或类似表达式。"
+      "answer": "C"
     },
     {
-      "id": "qu_mix_choice_002",
+      "id": "qu_171b52dc-1935-47bf-b3bf-7b87fefb3e5b",
       "type": "choice",
       "metadata": {
         "category": "9.choice"
@@ -730,7 +702,7 @@
       "question": "关于表达式 $E = (-2)^2 + [3 \\times (-1)^2]$ 的正确运算顺序是（ ）",
       "knowledge_points": [
         {
-          "outline": "有理数混合运算顺序",
+          "outline": "有理数的混合运算",
           "detail": "先乘方，再括号内的乘法，最后加法"
         }
       ],
