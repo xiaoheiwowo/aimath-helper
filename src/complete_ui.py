@@ -94,13 +94,19 @@ class MathHelperApp:
             student_answers = []
             grading_results = []
 
-            for i, image in enumerate(images):
-                # 保存图片到会话
-                image_path = f"temp_image_{i}.jpg"
-                image.save(image_path, "JPEG")
-                self.current_session.add_image(image_path)
-                os.remove(image_path)  # 删除临时文件
+            for i, image_item in enumerate(images):
+                # 处理 Gallery 组件返回的数据格式
+                # Gallery 可能返回字符串路径或 (path, caption) 元组
+                if isinstance(image_item, tuple):
+                    image_path = image_item[0]  # 取元组的第一个元素（路径）
+                else:
+                    image_path = image_item  # 直接是字符串路径
 
+                # 检查图片路径是否存在
+                if not os.path.exists(image_path):
+                    continue
+
+                # 图片已经保存在会话中，直接使用路径
                 # OCR识别
                 ocr_result = ai_processor.ocr_practice(image_path)
                 if not ocr_result.get("raw_text"):
@@ -202,7 +208,10 @@ class MathHelperApp:
             self.current_session.save()
 
             # 获取错误最多的知识点
-            top_error_points = error_analysis.get("top_error_points", [])
+            if isinstance(error_analysis, dict):
+                top_error_points = error_analysis.get("top_error_points", [])
+            else:
+                top_error_points = []
             if not top_error_points:
                 return "未发现明显的错误模式", None, ""
 
@@ -225,27 +234,267 @@ class MathHelperApp:
             # 生成Markdown
             practice_markdown = render_markdown(practice_data)
 
-            # 生成分析报告
-            analysis_report = "错误分析报告\n\n"
-            analysis_report += "错误最多的知识点:\n"
-            for point in top_error_points:
-                analysis_report += (
-                    f"- {point['outline']}: {point['error_count']} 次错误\n"
-                )
+            # 生成详细的分析报告
+            analysis_report = "## 📊 错误分析报告\n\n"
 
-            analysis_report += "\n已根据错误知识点重新生成针对性练习。"
+            # 总体错误统计
+            total_errors = sum(
+                1 for result in grading_results if not result.get("is_correct", True)
+            )
+            analysis_report += f"**总错误数:** {total_errors}\n\n"
+
+            # 按题目类型统计错误
+            choice_errors = sum(
+                1
+                for result in grading_results
+                if not result.get("is_correct", True)
+                and result.get("question_type") == "choice"
+            )
+            calculation_errors = sum(
+                1
+                for result in grading_results
+                if not result.get("is_correct", True)
+                and result.get("question_type") == "calculation"
+            )
+
+            analysis_report += "### 📈 错误类型统计\n\n"
+            analysis_report += f"- **选择题错误:** {choice_errors} 题\n"
+            analysis_report += f"- **计算题错误:** {calculation_errors} 题\n\n"
+
+            # 错误最多的知识点
+            analysis_report += "### 🎯 错误最多的知识点\n\n"
+            if top_error_points:
+                for i, point in enumerate(top_error_points, 1):
+                    if isinstance(point, dict):
+                        outline = point.get("outline", "未知知识点")
+                        error_count = point.get("error_count", 0)
+                        detail = point.get("detail", "")
+
+                        analysis_report += f"**{i}. {outline}**\n"
+                        analysis_report += f"- 错误次数: {error_count}\n"
+                        if detail:
+                            analysis_report += f"- 知识点详情: {detail}\n"
+                        analysis_report += "\n"
+                    else:
+                        analysis_report += f"**{i}. 数据格式错误: {point}**\n\n"
+            else:
+                analysis_report += "未发现明显的错误模式\n\n"
+
+            # 所有错误知识点统计
+            all_error_points = error_analysis.get("error_knowledge_points", [])
+            if all_error_points and isinstance(all_error_points, list):
+                analysis_report += "### 📚 所有错误知识点统计\n\n"
+                analysis_report += "| 知识点 | 错误次数 | 错误示例 |\n"
+                analysis_report += "|--------|----------|----------|\n"
+                for point in all_error_points:
+                    if isinstance(point, dict):
+                        outline = point.get("outline", "未知知识点")
+                        error_count = point.get("error_count", 0)
+                        examples = point.get("error_examples", [])
+                        example_text = "; ".join(examples[:2]) if examples else "无"
+                        if len(examples) > 2:
+                            example_text += "..."
+                        analysis_report += (
+                            f"| {outline} | {error_count} | {example_text} |\n"
+                        )
+                    else:
+                        analysis_report += "| 数据格式错误 | - | - |\n"
+                analysis_report += "\n"
+            else:
+                analysis_report += "### 📚 所有错误知识点统计\n\n"
+                analysis_report += "暂无详细错误知识点数据\n\n"
+
+            analysis_report += "### ✅ 后续建议\n\n"
+            analysis_report += (
+                "已根据错误知识点重新生成针对性练习，建议重点练习上述薄弱环节。"
+            )
 
             return analysis_report, practice_markdown
 
         except Exception as e:
             return f"分析错误时出错: {str(e)}", None
 
+    def analyze_errors_only(self):
+        """只分析错误知识点，不生成新练习"""
+        try:
+            grading_results = self.current_session.data.get("grading_results", [])
+            if not grading_results:
+                return "请先批改学生答案"
+
+            # 分析错误知识点
+            error_analysis = ai_processor.analyze_error_knowledge_points(
+                grading_results
+            )
+
+            # 更新会话数据
+            self.current_session.data["error_analysis"] = error_analysis
+            self.current_session.save()
+
+            # 获取错误最多的知识点
+            if isinstance(error_analysis, dict):
+                top_error_points = error_analysis.get("top_error_points", [])
+            else:
+                top_error_points = []
+
+            # 生成详细的分析报告
+            analysis_report = "## 📊 错误分析报告\n\n"
+
+            # 总体错误统计
+            total_errors = sum(
+                1 for result in grading_results if not result.get("is_correct", True)
+            )
+            analysis_report += f"**总错误数:** {total_errors}\n\n"
+
+            # 按题目类型统计错误
+            choice_errors = sum(
+                1
+                for result in grading_results
+                if not result.get("is_correct", True)
+                and result.get("question_type") == "choice"
+            )
+            calculation_errors = sum(
+                1
+                for result in grading_results
+                if not result.get("is_correct", True)
+                and result.get("question_type") == "calculation"
+            )
+
+            analysis_report += "### 📈 错误类型统计\n\n"
+            analysis_report += f"- **选择题错误:** {choice_errors} 题\n"
+            analysis_report += f"- **计算题错误:** {calculation_errors} 题\n\n"
+
+            # 错误最多的知识点
+            analysis_report += "### 🎯 错误最多的知识点\n\n"
+            if top_error_points:
+                for i, point in enumerate(top_error_points, 1):
+                    if isinstance(point, dict):
+                        outline = point.get("outline", "未知知识点")
+                        error_count = point.get("error_count", 0)
+                        detail = point.get("detail", "")
+
+                        analysis_report += f"**{i}. {outline}**\n"
+                        analysis_report += f"- 错误次数: {error_count}\n"
+                        if detail:
+                            analysis_report += f"- 知识点详情: {detail}\n"
+                        analysis_report += "\n"
+                    else:
+                        analysis_report += f"**{i}. 数据格式错误: {point}**\n\n"
+            else:
+                analysis_report += "未发现明显的错误模式\n\n"
+
+            # 所有错误知识点统计
+            all_error_points = error_analysis.get("error_knowledge_points", [])
+            if all_error_points and isinstance(all_error_points, list):
+                analysis_report += "### 📚 所有错误知识点统计\n\n"
+                analysis_report += "| 知识点 | 错误次数 | 错误示例 |\n"
+                analysis_report += "|--------|----------|----------|\n"
+                for point in all_error_points:
+                    if isinstance(point, dict):
+                        outline = point.get("outline", "未知知识点")
+                        error_count = point.get("error_count", 0)
+                        examples = point.get("error_examples", [])
+                        example_text = "; ".join(examples[:2]) if examples else "无"
+                        if len(examples) > 2:
+                            example_text += "..."
+                        analysis_report += (
+                            f"| {outline} | {error_count} | {example_text} |\n"
+                        )
+                    else:
+                        analysis_report += "| 数据格式错误 | - | - |\n"
+                analysis_report += "\n"
+            else:
+                analysis_report += "### 📚 所有错误知识点统计\n\n"
+                analysis_report += "暂无详细错误知识点数据\n\n"
+
+            analysis_report += "### 💡 分析建议\n\n"
+            analysis_report += (
+                "根据以上错误分析，建议重点关注错误较多的知识点，加强相关练习。"
+            )
+
+            return analysis_report
+
+        except Exception as e:
+            return f"分析错误时出错: {str(e)}"
+
+    def regenerate_with_new_session(self):
+        """基于错误知识点创建新会话并生成题目"""
+        try:
+            # 检查是否有批改结果
+            grading_results = self.current_session.data.get("grading_results", [])
+            if not grading_results:
+                return "请先批改学生答案", None, None, [], ""
+
+            # 分析错误知识点
+            error_analysis = ai_processor.analyze_error_knowledge_points(
+                grading_results
+            )
+
+            # 获取错误最多的知识点
+            top_error_points = error_analysis.get("top_error_points", [])
+            if not top_error_points:
+                return "未发现明显的错误模式", None, None, [], ""
+
+            # 创建新的会话
+            new_session = CompleteSession()
+            session_path = new_session.initialize()
+
+            # 根据错误知识点生成练习
+            error_knowledge_points = [point["outline"] for point in top_error_points]
+            practice = practice_manager.create_practice_by_knowledge_points(
+                title=f"针对性练习 - {', '.join(error_knowledge_points)}",
+                knowledge_points=error_knowledge_points,
+                choice_count=2,
+                calculation_count=2,
+            )
+
+            # 转换为字典格式
+            practice_data = practice_manager.practice_to_dict(practice)
+
+            # 更新新会话数据
+            new_session.data.update(
+                {
+                    "prompt": f"基于错误知识点的针对性练习: {', '.join(error_knowledge_points)}",
+                    "knowledge_points": error_knowledge_points,
+                    "practice_data": practice_data,
+                    "parent_session": self.current_session.session_path,  # 记录父会话
+                    "error_analysis": error_analysis,
+                }
+            )
+            new_session.save()
+
+            # 生成Markdown
+            practice_markdown = render_markdown(practice_data)
+
+            # 生成结果文本
+            result_text = "成功创建新会话并生成针对性练习！\n\n"
+            result_text += f"新会话: {os.path.basename(session_path)}\n\n"
+            result_text += f"错误知识点: {', '.join(error_knowledge_points)}\n\n"
+            result_text += f"题目数量: {len(practice_data['sections'])} 个部分\n"
+
+            for section in practice_data["sections"]:
+                result_text += (
+                    f"  - {section['name']}: {len(section['questions'])} 题\n"
+                )
+
+            # 更新当前会话为新会话
+            self.current_session = new_session
+
+            return (
+                result_text,
+                f"会话: {os.path.basename(session_path)}",
+                self.current_session.get_images(),
+                practice_markdown,
+            )
+
+        except Exception as e:
+            return f"创建新会话时出错: {str(e)}", None, [], ""
+
     def _generate_grading_report(
         self, grading_results: List[Dict], student_answers: List[Dict]
     ) -> str:
-        """生成批改报告"""
+        """生成批改报告（Markdown格式，支持LaTeX）"""
         if not grading_results:
-            return "没有批改结果"
+            return "## 📊 批改报告\n\n没有批改结果"
 
         # 统计总体情况
         total_questions = len(grading_results)
@@ -258,29 +507,136 @@ class MathHelperApp:
             else 0
         )
 
-        report = "📊 批改报告\n"
-        report += "=" * 50 + "\n\n"
-        report += f"批改时间: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        report += f"学生数量: {len(student_answers)}\n"
-        report += f"总题数: {total_questions}\n"
-        report += f"正确题数: {correct_answers}\n"
-        report += f"正确率: {accuracy}%\n\n"
+        # 按学生分组统计
+        student_stats = {}
+        if len(student_answers) > 1:
+            # 如果有多个学生，需要更精确的统计
+            for i, student_answer in enumerate(student_answers):
+                student_id = f"学生 {i + 1}"
+                student_correct = 0
+                student_total = 0
+
+                # 统计该学生的答题情况
+                # 简化处理：假设每个学生都回答了所有题目
+                student_total = len(grading_results)
+                student_correct = sum(
+                    1 for result in grading_results if result.get("is_correct", False)
+                )
+
+                student_accuracy = (
+                    round(student_correct / student_total * 100, 1)
+                    if student_total > 0
+                    else 0
+                )
+                student_stats[student_id] = {
+                    "correct": student_correct,
+                    "total": student_total,
+                    "accuracy": student_accuracy,
+                }
+        else:
+            # 单个学生的情况
+            student_id = "学生"
+            student_total = len(grading_results)
+            student_correct = sum(
+                1 for result in grading_results if result.get("is_correct", False)
+            )
+            student_accuracy = (
+                round(student_correct / student_total * 100, 1)
+                if student_total > 0
+                else 0
+            )
+            student_stats[student_id] = {
+                "correct": student_correct,
+                "total": student_total,
+                "accuracy": student_accuracy,
+            }
+
+        report = "## 📊 批改报告\n\n"
+        report += (
+            f"**批改时间:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        )
+
+        # 总体统计
+        report += "### 📈 总体统计\n\n"
+        report += f"- **学生数量:** {len(student_answers)}\n"
+        report += f"- **总题数:** {total_questions}\n"
+        report += f"- **正确题数:** {correct_answers}\n"
+        report += f"- **总体正确率:** {accuracy}%\n\n"
+
+        # 学生个人统计
+        if len(student_answers) > 1:
+            report += "### 👥 学生个人统计\n\n"
+            report += "| 学生 | 正确题数 | 总题数 | 正确率 |\n"
+            report += "|------|----------|--------|--------|\n"
+            for student_id, stats in student_stats.items():
+                report += f"| {student_id} | {stats['correct']} | {stats['total']} | {stats['accuracy']}% |\n"
+            report += "\n"
+        else:
+            # 单个学生的情况，显示详细信息
+            stats = list(student_stats.values())[0]
+            report += "### 👤 学生答题情况\n\n"
+            report += f"- **正确题数:** {stats['correct']}\n"
+            report += f"- **总题数:** {stats['total']}\n"
+            report += f"- **正确率:** {stats['accuracy']}%\n\n"
 
         # 详细结果
-        report += "📝 详细结果:\n"
-        report += "=" * 50 + "\n"
+        report += "### 📝 详细批改结果\n\n"
 
-        for i, result in enumerate(grading_results, 1):
-            report += f"题目 {i}: {result.get('question_text', '')[:50]}\n"
-            report += f"类型: {result.get('question_type', '')}\n"
-            report += (
-                f"结果: {'✅ 正确' if result.get('is_correct', False) else '❌ 错误'}\n"
-            )
+        # 按题目类型分组
+        choice_results = [
+            r for r in grading_results if r.get("question_type") == "choice"
+        ]
+        calculation_results = [
+            r for r in grading_results if r.get("question_type") == "calculation"
+        ]
 
-            if not result.get("is_correct", False) and result.get("explanation"):
-                report += f"错误原因: {result['explanation']}\n"
+        if choice_results:
+            report += "#### 选择题\n\n"
+            for i, result in enumerate(choice_results, 1):
+                question_text = result.get("question_text", "")
+                report += f"**题目 {i}:** {question_text}\n\n"
+                report += "- **类型:** 选择题\n"
+                report += f"- **结果:** {'✅ 正确' if result.get('is_correct', False) else '❌ 错误'}\n"
 
-            report += "\n"
+                if not result.get("is_correct", False) and result.get("explanation"):
+                    report += f"- **错误原因:** {result['explanation']}\n"
+
+                # 添加知识点信息
+                knowledge_points = result.get("knowledge_points", [])
+                if knowledge_points:
+                    kp_names = [
+                        kp.get("outline", "")
+                        for kp in knowledge_points
+                        if isinstance(kp, dict)
+                    ]
+                    if kp_names:
+                        report += f"- **涉及知识点:** {', '.join(kp_names)}\n"
+
+                report += "\n---\n\n"
+
+        if calculation_results:
+            report += "#### 计算题\n\n"
+            for i, result in enumerate(calculation_results, 1):
+                question_text = result.get("question_text", "")
+                report += f"**题目 {i}:** {question_text}\n\n"
+                report += "- **类型:** 计算题\n"
+                report += f"- **结果:** {'✅ 正确' if result.get('is_correct', False) else '❌ 错误'}\n"
+
+                if not result.get("is_correct", False) and result.get("explanation"):
+                    report += f"- **错误原因:** {result['explanation']}\n"
+
+                # 添加知识点信息
+                knowledge_points = result.get("knowledge_points", [])
+                if knowledge_points:
+                    kp_names = [
+                        kp.get("outline", "")
+                        for kp in knowledge_points
+                        if isinstance(kp, dict)
+                    ]
+                    if kp_names:
+                        report += f"- **涉及知识点:** {', '.join(kp_names)}\n"
+
+                report += "\n---\n\n"
 
         return report
 
@@ -420,10 +776,28 @@ def create_interface():
 
         # 第三步：批改和分析
         gr.Markdown("## 第三步：批改和分析")
-        grading_report = gr.Textbox(label="批改报告", lines=20, interactive=False)
+        grading_report = gr.Markdown(
+            label="批改报告",
+            value="",
+            visible=True,
+            elem_id="grading_report",
+            latex_delimiters=[
+                {"left": "$$", "right": "$$", "display": True},  # 块级数学
+                {"left": "$", "right": "$", "display": False},  # 行内数学
+            ],
+        )
 
         analyze_btn = gr.Button("分析错误知识点", variant="primary")
-        error_analysis = gr.Textbox(label="错误分析", lines=10, interactive=False)
+        error_analysis = gr.Markdown(
+            label="错误分析",
+            value="",
+            visible=True,
+            elem_id="error_analysis",
+            latex_delimiters=[
+                {"left": "$$", "right": "$$", "display": True},  # 块级数学
+                {"left": "$", "right": "$", "display": False},  # 行内数学
+            ],
+        )
 
         # 第四步：重新出题
         gr.Markdown("## 第四步：针对性练习")
@@ -447,7 +821,10 @@ def create_interface():
             return app.process_student_images(images)
 
         def analyze_errors():
-            return app.analyze_errors_and_regenerate()
+            return app.analyze_errors_only()
+
+        def regenerate_with_new_session():
+            return app.regenerate_with_new_session()
 
         def load_session(session_path):
             return app.load_session(session_path)
@@ -508,14 +885,19 @@ def create_interface():
         analyze_btn.click(
             fn=analyze_errors,
             inputs=[],
-            outputs=[error_analysis, new_practice_markdown],
+            outputs=[error_analysis],
         )
 
         # 重新出题
         regenerate_btn.click(
-            fn=analyze_errors,
+            fn=regenerate_with_new_session,
             inputs=[],
-            outputs=[error_analysis, new_practice_markdown],
+            outputs=[
+                result_output,
+                current_session_info,
+                images_gallery,
+                new_practice_markdown,
+            ],
         )
 
         # 会话选择

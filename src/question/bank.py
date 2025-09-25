@@ -39,31 +39,35 @@ class QuestionBank:
                 knowledge_points.append(KnowledgePoint(outline=kp_data, detail=""))
             elif isinstance(kp_data, dict):
                 # 对象格式
-                knowledge_points.append(KnowledgePoint(
-                    outline=kp_data.get("outline", ""),
-                    detail=kp_data.get("detail", "")
-                ))
+                knowledge_points.append(
+                    KnowledgePoint(
+                        outline=kp_data.get("outline", ""),
+                        detail=kp_data.get("detail", ""),
+                    )
+                )
 
         # 解析选择题选项
         choices = None
         if q_data.get("choices"):
             choices = []
             for choice_data in q_data["choices"]:
-                choices.append(Choice(
-                    id=choice_data["id"],
-                    content=choice_data["content"],
-                    is_correct=choice_data["is_correct"],
-                    explanation=choice_data.get("explanation", "")  # 使用get方法安全获取
-                ))
+                choices.append(
+                    Choice(
+                        id=choice_data["id"],
+                        content=choice_data["content"],
+                        is_correct=choice_data["is_correct"],
+                        explanation=choice_data.get(
+                            "explanation", ""
+                        ),  # 使用get方法安全获取
+                    )
+                )
 
         # 解析解题步骤
         solution_steps = None
         if q_data.get("solution_steps"):
             solution_steps = []
             for step_data in q_data["solution_steps"]:
-                solution_steps.append(SolutionStep(
-                    step=step_data["step"]
-                ))
+                solution_steps.append(SolutionStep(step=step_data["step"]))
 
         return Question(
             id=str(q_data["id"]),
@@ -71,7 +75,7 @@ class QuestionBank:
             question=q_data["question"],
             knowledge_points=knowledge_points,
             choices=choices,
-            solution_steps=solution_steps
+            solution_steps=solution_steps,
         )
 
     def get_question(self, id: str) -> Question:
@@ -88,8 +92,11 @@ class QuestionBank:
 
     def get_questions_by_knowledge_point(self, knowledge_point: str) -> List[Question]:
         """根据知识点获取题目"""
-        return [q for q in self.questions 
-                if any(kp.outline == knowledge_point for kp in q.knowledge_points)]
+        return [
+            q
+            for q in self.questions
+            if any(kp.outline == knowledge_point for kp in q.knowledge_points)
+        ]
 
     def get_questions_by_knowledge_points(
         self, knowledge_points: List[str]
@@ -181,7 +188,16 @@ class QuestionBank:
         """获取所有题目"""
         return self.questions.copy()
 
+
 if __name__ == "__main__":
     qb = QuestionBank()
     qb.load_questions()
-    print(qb.get_all_questions())
+    qs = qb.get_random_questions_by_knowledge_points(
+        knowledge_points=[
+            # "有理数的加法法则",
+            "有理数的加法运算定律",
+            "有理数的乘法法则",
+            # "有理数的乘法运算定律",
+        ]
+    )
+    print([q.knowledge_points[0].outline for q in qs])
