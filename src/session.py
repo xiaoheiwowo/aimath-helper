@@ -95,7 +95,6 @@ class CompleteSession:
             "practice_data": None,
             "student_answers": [],
             "grading_results": [],
-            "error_analysis": None,
             "images": [],
             "created_at": datetime.datetime.now().isoformat(),
             "updated_at": datetime.datetime.now().isoformat(),
@@ -127,6 +126,10 @@ class CompleteSession:
         if not self.session_path:
             return "请先初始化会话"
 
+        # 检查源图片文件是否存在
+        if not os.path.exists(image_path):
+            return f"图片文件不存在: {image_path}"
+
         # 创建 images 子目录
         images_dir = os.path.join(self.session_path, "images")
         os.makedirs(images_dir, exist_ok=True)
@@ -138,7 +141,10 @@ class CompleteSession:
 
         import shutil
 
-        shutil.copy2(image_path, target_path)
+        try:
+            shutil.copy2(image_path, target_path)
+        except Exception as e:
+            return f"保存图片时出错: {str(e)}"
 
         # 更新图片列表
         if "images" not in self.data:

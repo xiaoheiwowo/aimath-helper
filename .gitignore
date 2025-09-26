@@ -2,9 +2,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,macos,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,macos,python
 
+
+data/*
+!data/8af101c1_20250925_144208
+
 # img/
 output/
-data/*
 .gradio/
 tmp/
 tools/

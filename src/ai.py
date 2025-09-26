@@ -205,11 +205,6 @@ OCR文本：
 
 学生最终答案：{student_result}
 
-标准解答步骤：
-{json.dumps(correct_steps, ensure_ascii=False, indent=2)}
-
-标准答案：{correct_answer}
-
 要求：
 1. 逐个分析学生解答的每个步骤
 2. 判断步骤是否正确，如果不正确请说明错误原因
@@ -253,7 +248,7 @@ OCR文本：
             if clean_text.endswith("```"):
                 clean_text = clean_text[:-3]
             clean_text = clean_text.strip()
-
+            print("### grade_calculation_question\n", prompt, clean_text)
             return json.loads(clean_text)
 
         except Exception as e:
@@ -267,86 +262,85 @@ OCR文本：
 
     def analyze_error_knowledge_points(
         self, grading_results: List[Dict]
-    ) -> List[Dict[str, Any]]:
-        """分析错误知识点"""
+    ) -> Dict[str, Any]:
+        """分析错误知识点 - 直接从grading_results统计"""
         try:
-            # 收集所有错误信息
-            error_info = []
+            # 统计每个知识点的错误次数
+            knowledge_point_errors = {}
+
             for result in grading_results:
-                if not result.get("is_correct", True):
-                    error_info.append(
-                        {
-                            "question_id": result.get("question_id", ""),
-                            "question_type": result.get("question_type", ""),
-                            "error_explanation": result.get("explanation", ""),
-                            "knowledge_points": result.get("knowledge_points", []),
-                        }
-                    )
+                # 判断题目是否错误，兼容选择题和计算题的不同字段
+                question_type = result.get("question_type", "")
+                is_incorrect = False
 
-            if not error_info:
-                return []
+                if question_type == "choice":
+                    is_incorrect = not result.get("is_correct", True)
+                elif question_type == "calculation":
+                    is_incorrect = not result.get("overall_correct", True)
+                else:
+                    is_incorrect = not result.get("is_correct", True)
 
-            prompt = f"""请分析以下学生的答题错误，找出涉及的知识点。
+                if is_incorrect:
+                    # 获取题目涉及的知识点
+                    knowledge_points = result.get("knowledge_points", [])
+                    for kp in knowledge_points:
+                        if isinstance(kp, dict):
+                            outline = kp.get("outline", "")
+                            if outline:
+                                if outline not in knowledge_point_errors:
+                                    knowledge_point_errors[outline] = {
+                                        "outline": outline,
+                                        "error_count": 0,
+                                        "error_examples": [],
+                                    }
 
-错误信息：
-{json.dumps(error_info, ensure_ascii=False, indent=2)}
+                                knowledge_point_errors[outline]["error_count"] += 1
 
-可用的知识点列表：
-{json.dumps([{"outline": kp.outline, "detail": kp.detail} for kp in knowledge_base.get_all_knowledge_points()], ensure_ascii=False, indent=2)}
+                                # 收集错误示例（从explanation中提取）
+                                explanation = result.get("explanation", "")
+                                if (
+                                    explanation
+                                    and explanation
+                                    not in knowledge_point_errors[outline][
+                                        "error_examples"
+                                    ]
+                                ):
+                                    knowledge_point_errors[outline][
+                                        "error_examples"
+                                    ].append(explanation)
 
-要求：
-1. 分析每个错误涉及的知识点
-2. 统计每个知识点的错误次数
-3. 找出错误最多的前两个知识点
+            if not knowledge_point_errors:
+                return {"error_knowledge_points": [], "top_error_points": []}
 
-返回JSON格式：
-{{
-  "error_knowledge_points": [
-    {{
-      "outline": "知识点名称",
-      "detail": "知识点详情", 
-      "error_count": 错误次数,
-      "error_examples": ["错误示例1", "错误示例2"]
-    }}
-  ],
-  "top_error_points": [
-    {{
-      "outline": "错误最多的知识点1",
-      "detail": "知识点详情",
-      "error_count": 错误次数
-    }},
-    {{
-      "outline": "错误最多的知识点2", 
-      "detail": "知识点详情",
-      "error_count": 错误次数
-    }}
-  ]
-}}"""
+            # 转换为列表并添加标准detail描述
+            error_knowledge_points = []
+            for outline, data in knowledge_point_errors.items():
+                # 查找知识库中的标准detail描述
+                standard_detail = ""
+                for kp in knowledge_base.get_all_knowledge_points():
+                    if kp.outline == outline:
+                        standard_detail = kp.detail
+                        break
 
-            response = self.ai_client.chat.completions.create(
-                model="qwen-plus",
-                messages=[
+                error_knowledge_points.append(
                     {
-                        "role": "system",
-                        "content": "你是一位专业的数学老师，擅长分析学生的学习错误和薄弱知识点。请仔细分析错误模式，找出学生需要重点练习的知识点。",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.1,
-                max_tokens=1500,
-            )
+                        "outline": outline,
+                        "detail": standard_detail,
+                        "error_count": data["error_count"],
+                        "error_examples": data["error_examples"][:3],  # 最多保留3个示例
+                    }
+                )
 
-            response_text = response.choices[0].message.content
+            # 按错误次数排序
+            error_knowledge_points.sort(key=lambda x: x["error_count"], reverse=True)
 
-            # 清理响应文本
-            clean_text = response_text.strip()
-            if clean_text.startswith("```json"):
-                clean_text = clean_text[7:]
-            if clean_text.endswith("```"):
-                clean_text = clean_text[:-3]
-            clean_text = clean_text.strip()
+            # 获取错误最多的前两个知识点
+            top_error_points = error_knowledge_points[:2]
 
-            return json.loads(clean_text)
+            return {
+                "error_knowledge_points": error_knowledge_points,
+                "top_error_points": top_error_points,
+            }
 
         except Exception as e:
             self.logger.error(f"分析错误知识点失败: {e}")
@@ -380,11 +374,10 @@ OCR文本：
                             "type": "text",
                             "text": """请仔细识别这张数学作业图片中的所有文字和数学表达式。要求：
 1. 准确识别题目编号和数字、运算符号、分数、等号等数学符号
-2. 使用 latex 语法。
-4. 识别中文题目描述和解答过程
-5. 对于手写内容，请尽可能准确识别
-6. 按照原图的顺序输出内容
-7. 注意等号的位置，等号决定了计算步骤的开始。
+2. 数学表达式使用 latex 语法。
+3. 识别中文题目描述和解答过程
+4. 对于手写内容，请尽可能准确识别
+5. 按照原图的顺序输出内容
 
 请直接输出识别的文字内容，不要添加额外的解释。""",
                         },

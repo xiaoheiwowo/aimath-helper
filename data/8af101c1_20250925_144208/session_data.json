@@ -1,0 +1,587 @@
+{
+  "prompt": "加法和乘法",
+  "knowledge_points": [
+    "有理数的加法法则",
+    "有理数的加法运算定律",
+    "有理数的乘法法则",
+    "有理数的乘法运算定律"
+  ],
+  "practice_data": {
+    "title": "练习试题",
+    "practice_id": "94ec5cee",
+    "sections": [
+      {
+        "name": "一、选择题",
+        "type": "choice",
+        "question_ids": [
+          "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+          "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a"
+        ],
+        "questions": [
+          {
+            "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+            "type": "choice",
+            "metadata": {
+              "category": "choice"
+            },
+            "question": "下列说法错误的是（   ）",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+              }
+            ],
+            "choices": [
+              {
+                "id": "A",
+                "content": "两数之和可能小于其中的一个加数",
+                "is_correct": false,
+                "explanation": "异号相加时，和小于原来的正数，正确。"
+              },
+              {
+                "id": "B",
+                "content": "两数相加就是它们的绝对值相加",
+                "is_correct": true,
+                "explanation": "异号相加应取绝对值大的数的符号，再用大绝对值减去小绝对值，此说法错误。"
+              },
+              {
+                "id": "C",
+                "content": "两个负数相加，和取负号，绝对值相加",
+                "is_correct": false,
+                "explanation": "同号相加规则，两个负数相加结果为负数，正确。"
+              },
+              {
+                "id": "D",
+                "content": "两个数若不是相反数，则相加不能得零",
+                "is_correct": false,
+                "explanation": "只有互为相反数的两个数相加才为零，因此说法正确。"
+              }
+            ],
+            "answer": "B"
+          },
+          {
+            "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+            "type": "choice",
+            "metadata": {
+              "category": "choice"
+            },
+            "question": "若有理数 $a+b+c<0$，则（   ）",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+              }
+            ],
+            "choices": [
+              {
+                "id": "A",
+                "content": "三个数中至少有两个负数",
+                "is_correct": false,
+                "explanation": "不一定必须有两个负数，例如 $a=-1, b=2, c=-3$。"
+              },
+              {
+                "id": "B",
+                "content": "三个数中有且只有一个负数",
+                "is_correct": false,
+                "explanation": "不一定，只要和小于0，不限制负数个数为1。"
+              },
+              {
+                "id": "C",
+                "content": "三个数中至少有一个负数",
+                "is_correct": true,
+                "explanation": "若 $a+b+c<0$，无论 $b+c$ 大于0还是小于0，总有至少一个数必须为负数。"
+              },
+              {
+                "id": "D",
+                "content": "三个数中有两个是正数或两个是负数",
+                "is_correct": false,
+                "explanation": "不一定成立，无法保证。"
+              }
+            ],
+            "answer": "C"
+          }
+        ]
+      },
+      {
+        "name": "二、计算题",
+        "type": "calculation",
+        "question_ids": [
+          "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+          "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78"
+        ],
+        "questions": [
+          {
+            "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+            "type": "calculation",
+            "metadata": {
+              "category": "calculation"
+            },
+            "question": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+              }
+            ],
+            "solution_steps": [
+              {
+                "step": "将带分数拆分为整数部分和分数部分：$\\left[ (-2019) + (-\\frac{5}{6}) \\right] + \\left[ (-2018) + (-\\frac{2}{3}) \\right] + (4036 + \\frac{2}{3}) + \\left[ (-1) + (-\\frac{1}{2}) \\right]$"
+              },
+              {
+                "step": "整数部分和分数部分分别相加：$[(-2019) + (-2018) + 4036 + (-1)] + \\left[ (-\\frac{5}{6}) + (-\\frac{2}{3}) + \\frac{2}{3} + (-\\frac{1}{2}) \\right]$"
+              },
+              {
+                "step": "计算整数部分：$(-2019) + (-2018) + 4036 + (-1) = -2$"
+              },
+              {
+                "step": "计算分数部分：$(-\\frac{5}{6}) + (-\\frac{2}{3}) + \\frac{2}{3} + (-\\frac{1}{2}) = -\\frac{4}{3}$"
+              },
+              {
+                "step": "合并结果：$-2 + (-\\frac{4}{3}) = -3\\frac{1}{3}$"
+              }
+            ],
+            "answer": "-2"
+          },
+          {
+            "id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+            "type": "calculation",
+            "metadata": {
+              "category": "calculation"
+            },
+            "question": "计算：$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$",
+            "knowledge_points": [
+              {
+                "outline": "有理数的乘法运算定律",
+                "detail": "利用乘法分配律进行简便运算"
+              }
+            ],
+            "solution_steps": [
+              {
+                "step": "$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$"
+              },
+              {
+                "step": "$= \\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\times (-12)$"
+              },
+              {
+                "step": "$= -\\dfrac{1}{4}\\times (-12) - \\dfrac{1}{6}\\times (-12) + \\dfrac{1}{2}\\times (-12)$"
+              },
+              {
+                "step": "$= 3 + 2 - 6$"
+              },
+              {
+                "step": "$= -1$"
+              }
+            ],
+            "answer": "-1"
+          }
+        ]
+      }
+    ]
+  },
+  "student_answers": [
+    {
+      "name": "小明",
+      "practice_id": "",
+      "sections": [
+        {
+          "name": "一、选择题",
+          "type": "choice",
+          "questions": [
+            {
+              "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+              "answer": {
+                "choice": "B"
+              }
+            },
+            {
+              "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+              "answer": {
+                "choice": "A"
+              }
+            }
+          ]
+        },
+        {
+          "name": "二、计算题",
+          "type": "calculation",
+          "questions": [
+            {
+              "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+              "answer": {
+                "solution_steps": [
+                  "(-2019\\frac{5}{6}) + (-2018\\frac{2}{3}) + 4036\\frac{2}{3} + (-1\\frac{1}{2})"
+                ],
+                "result": "-2"
+              }
+            },
+            {
+              "id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+              "answer": {
+                "solution_steps": [
+                  "\\left(-\\frac{1}{4} - \\frac{1}{6} + \\frac{1}{2}\\right) \\div \\left(-\\frac{1}{12}\\right)"
+                ],
+                "result": "1"
+              }
+            }
+          ]
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "name": "",
+      "practice_id": "",
+      "sections": [
+        {
+          "name": "一、选择题",
+          "type": "choice",
+          "questions": [
+            {
+              "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+              "answer": {
+                "choice": "B"
+              }
+            },
+            {
+              "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+              "answer": {
+                "choice": "D"
+              }
+            }
+          ]
+        },
+        {
+          "name": "二、计算题",
+          "type": "calculation",
+          "questions": [
+            {
+              "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+              "answer": {
+                "solution_steps": [
+                  "(-2019\\frac{5}{6}) + (-2018\\frac{2}{3}) + 4036\\frac{2}{3} + (-1\\frac{1}{2})"
+                ],
+                "result": "1"
+              }
+            },
+            {
+              "id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+              "answer": {
+                "solution_steps": [
+                  "\\left(-\\frac{1}{4} - \\frac{1}{6} + \\frac{1}{2}\\right) \\div \\left(-\\frac{1}{12}\\right)"
+                ],
+                "result": "1"
+              }
+            }
+          ]
+        }
+      ],
+      "student_name": "学生2",
+      "student_id": "student_2"
+    },
+    {
+      "name": "小红",
+      "practice_id": "",
+      "sections": [
+        {
+          "name": "一、选择题",
+          "type": "choice",
+          "questions": [
+            {
+              "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+              "answer": {
+                "choice": "C"
+              }
+            },
+            {
+              "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+              "answer": {
+                "choice": "C"
+              }
+            }
+          ]
+        },
+        {
+          "name": "二、计算题",
+          "type": "calculation",
+          "questions": [
+            {
+              "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+              "answer": {
+                "solution_steps": [],
+                "result": ""
+              }
+            },
+            {
+              "id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+              "answer": {
+                "solution_steps": [
+                  "\\left(-\\frac{1}{4} - \\frac{1}{6} + \\frac{1}{2}\\right) \\div \\left(-\\frac{1}{12}\\right)",
+                  "= 100"
+                ],
+                "result": "100"
+              }
+            }
+          ]
+        }
+      ],
+      "student_name": "小红",
+      "student_id": "student_3"
+    }
+  ],
+  "grading_results": [
+    {
+      "is_correct": true,
+      "student_answer": "B",
+      "correct_answer": "B",
+      "explanation": "",
+      "question_id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+      "question_type": "choice",
+      "question_text": "下列说法错误的是（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "is_correct": false,
+      "student_answer": "A",
+      "correct_answer": "C",
+      "explanation": "不一定必须有两个负数，例如 $a=-1, b=2, c=-3$。",
+      "question_id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+      "question_type": "choice",
+      "question_text": "若有理数 $a+b+c<0$，则（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "(-2019\\frac{5}{6}) + (-2018\\frac{2}{3}) + 4036\\frac{2}{3} + (-1\\frac{1}{2})",
+          "is_correct": false,
+          "explanation": "该步骤是题目本身，不是学生的解题过程。学生未展示中间计算步骤，直接给出最终答案，因此无法验证其推理过程。从数学角度看，混合数的加法需要先将其转换为假分数或整数与分数的和，并注意符号。原式中各项应分别处理符号和数值部分。此处学生没有进行任何分解或转换操作的展示，属于缺少关键解题步骤，无法判定为正确解法。"
+        }
+      ],
+      "final_answer_explanation": "实际计算如下：\n\n将各带分数转化为假分数：\n\n- \\(-2019\\frac{5}{6} = -\\left(2019 + \\frac{5}{6}\\right) = -\\frac{2019 \\times 6 + 5}{6} = -\\frac{12114 + 5}{6} = -\\frac{12119}{6}\\)\n- \\(-2018\\frac{2}{3} = -\\left(2018 + \\frac{2}{3}\\right) = -\\frac{2018 \\times 3 + 2}{3} = -\\frac{6054 + 2}{3} = -\\frac{6056}{3}\\)\n- \\(4036\\frac{2}{3} = \\frac{4036 \\times 3 + 2}{3} = \\frac{12108 + 2}{3} = \\frac{12110}{3}\\)\n- \\(-1\\frac{1}{2} = -\\frac{3}{2}\\)\n\n现在求和：\n\n$$\n-\\frac{12119}{6} - \\frac{6056}{3} + \\frac{12110}{3} - \\frac{3}{2}\n$$\n\n统一分母为6：\n\n- \\(-\\frac{12119}{6}\\)\n- \\(-\\frac{6056}{3} = -\\frac{12112}{6}\\)\n- \\(\\frac{12110}{3} = \\frac{24220}{6}\\)\n- \\(-\\frac{3}{2} = -\\frac{9}{6}\\)\n\n相加：\n\n$$\n\\frac{-12119 -12112 + 24220 - 9}{6} = \\frac{(-24231) + 24220 - 9}{6} = \\frac{-11 - 9}{6} = \\frac{-20}{6} = -\\frac{10}{3} \\approx -3.333\n$$\n\n因此，正确结果应为 $-\\frac{10}{3}$，而学生给出的答案是 -2，不正确。",
+      "question_id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "\\left(-\\frac{1}{4} - \\frac{1}{6} + \\frac{1}{2}\\right) \\div \\left(-\\frac{1}{12}\\right)",
+          "is_correct": false,
+          "explanation": "该步骤是题目本身，不是学生的解题过程。学生没有展示中间计算步骤，直接给出了最终答案1。因此，此步骤并非有效的解题步骤，无法体现运算过程。正确的做法应先计算括号内的加减法，再进行除法运算。由于缺少实际的中间步骤，视为解答不完整且存在逻辑缺失。"
+        }
+      ],
+      "final_answer_explanation": "正确计算过程如下：首先计算括号内：-1/4 - 1/6 + 1/2。通分后公分母为12，得：-3/12 - 2/12 + 6/12 = 1/12。然后进行除法：(1/12) ÷ (-1/12) = (1/12) × (-12/1) = -1。因此正确答案应为-1，而学生给出的答案是1，符号错误，最终答案不正确。",
+      "question_id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法运算定律",
+          "detail": "利用乘法分配律进行简便运算"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "is_correct": true,
+      "student_answer": "B",
+      "correct_answer": "B",
+      "explanation": "",
+      "question_id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+      "question_type": "choice",
+      "question_text": "下列说法错误的是（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+        }
+      ],
+      "student_name": "学生2",
+      "student_id": "student_2"
+    },
+    {
+      "is_correct": false,
+      "student_answer": "D",
+      "correct_answer": "C",
+      "explanation": "不一定成立，无法保证。",
+      "question_id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+      "question_type": "choice",
+      "question_text": "若有理数 $a+b+c<0$，则（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+        }
+      ],
+      "student_name": "学生2",
+      "student_id": "student_2"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "(-2019\\frac{5}{6}) + (-2018\\frac{2}{3}) + 4036\\frac{2}{3} + (-1\\frac{1}{2})",
+          "is_correct": false,
+          "explanation": "该步骤是题目本身，不是学生的解题过程。学生没有展示任何中间计算步骤，仅给出了最终答案。因此无法验证其推理过程，且缺少必要的拆分、通分、符号处理等关键运算步骤。作为一个解答过程，此步骤不完整，不能视为正确的解题步骤。"
+        }
+      ],
+      "final_answer_explanation": "正确计算应如下：\n首先将带分数转换为假分数：\n-2019⅚ = -(2019 + 5/6) = - (2019×6 + 5)/6 = - (12114 + 5)/6 = -12119/6\n-2018⅔ = - (2018×3 + 2)/3 = - (6054 + 2)/3 = -6056/3\n4036⅔ = (4036×3 + 2)/3 = (12108 + 2)/3 = 12110/3\n-1½ = - (1×2 + 1)/2 = -3/2\n\n现在求和：\n-12119/6 - 6056/3 + 12110/3 - 3/2\n\n统一分母为6：\n= -12119/6 - (6056×2)/6 + (12110×2)/6 - (3×3)/6\n= -12119/6 - 12112/6 + 24220/6 - 9/6\n\n合并分子：\n(-12119 - 12112 + 24220 - 9)/6 = (-24231 + 24220 - 9)/6 = (-11 - 9)/6 = -20/6 = -10/3 ≈ -3.333...\n\n因此，正确结果应为 -10/3，而不是1。学生最终答案错误。",
+      "question_id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+        }
+      ],
+      "student_name": "学生2",
+      "student_id": "student_2"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "\\left(-\\frac{1}{4} - \\frac{1}{6} + \\frac{1}{2}\\right) \\div \\left(-\\frac{1}{12}\\right)",
+          "is_correct": false,
+          "explanation": "该步骤是题目本身，不是学生的解题过程。学生未展示中间计算步骤，直接给出最终答案1，因此无法验证其推理过程。此步骤仅为原题表达式，不能视为正确的解题步骤。缺少对括号内分数的通分与运算，以及除法转化为乘法的过程，属于解题过程缺失。"
+        }
+      ],
+      "final_answer_explanation": "正确计算应为：先计算括号内的表达式。通分后，-1/4 = -3/12，-1/6 = -2/12，1/2 = 6/12，所以括号内为 (-3/12 - 2/12 + 6/12) = 1/12。然后进行除法：(1/12) ÷ (-1/12) = (1/12) × (-12/1) = -1。因此正确答案应为 -1，而学生给出的答案是 1，符号错误，最终答案不正确。",
+      "question_id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法运算定律",
+          "detail": "利用乘法分配律进行简便运算"
+        }
+      ],
+      "student_name": "学生2",
+      "student_id": "student_2"
+    },
+    {
+      "is_correct": false,
+      "student_answer": "C",
+      "correct_answer": "B",
+      "explanation": "同号相加规则，两个负数相加结果为负数，正确。",
+      "question_id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+      "question_type": "choice",
+      "question_text": "下列说法错误的是（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+        }
+      ],
+      "student_name": "小红",
+      "student_id": "student_3"
+    },
+    {
+      "is_correct": true,
+      "student_answer": "C",
+      "correct_answer": "C",
+      "explanation": "",
+      "question_id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+      "question_type": "choice",
+      "question_text": "若有理数 $a+b+c<0$，则（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+        }
+      ],
+      "student_name": "小红",
+      "student_id": "student_3"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "学生步骤",
+          "is_correct": false,
+          "explanation": "未提供具体的解答步骤，无法验证其正确性。缺少必要的计算过程或表达式，导致无法进行有效分析。"
+        }
+      ],
+      "final_answer_explanation": "由于没有提供学生的具体解题步骤和最终答案内容，无法确认最终答案的正确性。完整的解题过程是判断答案是否正确的前提。",
+      "question_id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+        }
+      ],
+      "student_name": "小红",
+      "student_id": "student_3"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "\\left(-\\frac{1}{4} - \\frac{1}{6} + \\frac{1}{2}\\right) \\div \\left(-\\frac{1}{12}\\right)",
+          "is_correct": false,
+          "explanation": "该步骤是题目本身，学生未进行实际计算，直接跳到结果。但作为解题的第一步，仅写出原式是合理的起点。然而，学生没有展示中间计算过程，直接得出结果100，说明此步骤后缺少必要的运算推导。从解题完整性来看，此步骤不能视为正确解题步骤，且后续无分步过程，因此判定为不正确。"
+        }
+      ],
+      "final_answer_explanation": "正确计算应先处理括号内的加减运算。通分：-1/4 = -3/12，-1/6 = -2/12，1/2 = 6/12。因此括号内为：(-3/12 - 2/12 + 6/12) = 1/12。然后进行除法：(1/12) ÷ (-1/12) = (1/12) × (-12/1) = -1。因此正确结果应为 -1，而不是 100。学生答案严重错误，可能是误操作或符号错误导致。",
+      "question_id": "qu_8b13c6a5-7b3a-4f4c-9a12-3b0df9a0de78",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left(-\\dfrac{1}{4} - \\dfrac{1}{6} + \\dfrac{1}{2}\\right) \\div \\left(-\\dfrac{1}{12}\\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的乘法运算定律",
+          "detail": "利用乘法分配律进行简便运算"
+        }
+      ],
+      "student_name": "小红",
+      "student_id": "student_3"
+    }
+  ],
+  "images": [
+    "/Users/xiaohei/work/project/aimath-helper/data/8af101c1_20250925_144208/images/image_20250926_142046_813.jpg",
+    "/Users/xiaohei/work/project/aimath-helper/data/8af101c1_20250925_144208/images/image_20250926_155259_300.jpg",
+    "/Users/xiaohei/work/project/aimath-helper/data/8af101c1_20250925_144208/images/image_20250926_163842_129.jpg"
+  ],
+  "created_at": "2025-09-25T14:41:59.340458",
+  "updated_at": "2025-09-26T16:43:20.174516"
+}
