@@ -928,7 +928,7 @@ def create_interface():
         gr.Markdown("## 第二步：学生答题（上传图片）")
         image_input = gr.Image(
             label="上传学生答题图片",
-            sources=["webcam", "upload", "clipboard"],
+            sources=["upload", "clipboard"],
             type="pil",
             height=400,
         )
