@@ -220,125 +220,6 @@ class MathHelperApp:
         except Exception as e:
             return f"处理图片时出错: {str(e)}", None, ""
 
-    def analyze_errors_and_regenerate(self):
-        """分析错误并重新生成题目"""
-        try:
-            grading_results = self.current_session.data.get("grading_results", [])
-            if not grading_results:
-                return "请先批改学生答案", None, ""
-
-            # 分析错误知识点
-            error_analysis = ai_processor.analyze_error_knowledge_points(
-                grading_results
-            )
-
-            # 获取错误最多的知识点
-            if isinstance(error_analysis, dict):
-                top_error_points = error_analysis.get("top_error_points", [])
-            else:
-                top_error_points = []
-            if not top_error_points:
-                return "未发现明显的错误模式", None, ""
-
-            # 根据错误知识点重新生成题目
-            error_knowledge_points = [point["outline"] for point in top_error_points]
-            practice = practice_manager.create_practice_by_knowledge_points(
-                title=f"针对性练习 - {', '.join(error_knowledge_points)}",
-                knowledge_points=error_knowledge_points,
-                choice_count=2,
-                calculation_count=2,
-            )
-
-            # 转换为字典格式
-            practice_data = practice_manager.practice_to_dict(practice)
-
-            # 更新会话数据
-            self.current_session.data["practice_data"] = practice_data
-            self.current_session.save()
-
-            # 生成Markdown
-            practice_markdown = render_markdown(practice_data)
-
-            # 生成详细的分析报告
-            analysis_report = "## 📊 错误分析报告\n\n"
-
-            # 总体错误统计
-            total_errors = sum(
-                1 for result in grading_results if self._is_question_incorrect(result)
-            )
-            analysis_report += f"**总错误数:** {total_errors}\n\n"
-
-            # 按题目类型统计错误
-            choice_errors = sum(
-                1
-                for result in grading_results
-                if self._is_question_incorrect(result)
-                and result.get("question_type") == "choice"
-            )
-            calculation_errors = sum(
-                1
-                for result in grading_results
-                if self._is_question_incorrect(result)
-                and result.get("question_type") == "calculation"
-            )
-
-            analysis_report += "### 📈 错误类型统计\n\n"
-            analysis_report += f"- **选择题错误:** {choice_errors} 题\n"
-            analysis_report += f"- **计算题错误:** {calculation_errors} 题\n\n"
-
-            # 错误最多的知识点
-            analysis_report += "### 🎯 错误最多的知识点\n\n"
-            if top_error_points:
-                for i, point in enumerate(top_error_points, 1):
-                    if isinstance(point, dict):
-                        outline = point.get("outline", "未知知识点")
-                        error_count = point.get("error_count", 0)
-                        detail = point.get("detail", "")
-
-                        analysis_report += f"**{i}. {outline}**\n"
-                        analysis_report += f"- 错误次数: {error_count}\n"
-                        if detail:
-                            analysis_report += f"- 知识点详情: {detail}\n"
-                        analysis_report += "\n"
-                    else:
-                        analysis_report += f"**{i}. 数据格式错误: {point}**\n\n"
-            else:
-                analysis_report += "未发现明显的错误模式\n\n"
-
-            # 所有错误知识点统计
-            all_error_points = error_analysis.get("error_knowledge_points", [])
-            if all_error_points and isinstance(all_error_points, list):
-                analysis_report += "### 📚 所有错误知识点统计\n\n"
-                analysis_report += "| 知识点 | 错误次数 | 错误示例 |\n"
-                analysis_report += "|--------|----------|----------|\n"
-                for point in all_error_points:
-                    if isinstance(point, dict):
-                        outline = point.get("outline", "未知知识点")
-                        error_count = point.get("error_count", 0)
-                        examples = point.get("error_examples", [])
-                        example_text = "; ".join(examples[:2]) if examples else "无"
-                        if len(examples) > 2:
-                            example_text += "..."
-                        analysis_report += (
-                            f"| {outline} | {error_count} | {example_text} |\n"
-                        )
-                    else:
-                        analysis_report += "| 数据格式错误 | - | - |\n"
-                analysis_report += "\n"
-            else:
-                analysis_report += "### 📚 所有错误知识点统计\n\n"
-                analysis_report += "暂无详细错误知识点数据\n\n"
-
-            analysis_report += "### ✅ 后续建议\n\n"
-            analysis_report += (
-                "已根据错误知识点重新生成针对性练习，建议重点练习上述薄弱环节。"
-            )
-
-            return analysis_report, practice_markdown
-
-        except Exception as e:
-            return f"分析错误时出错: {str(e)}", None
-
     def analyze_errors_only(self):
         """只分析错误知识点，不生成新练习"""
         try:
@@ -428,9 +309,15 @@ class MathHelperApp:
                 analysis_report += "暂无详细错误知识点数据\n\n"
 
             analysis_report += "### 💡 分析建议\n\n"
-            analysis_report += (
-                "根据以上错误分析，建议重点关注错误较多的知识点，加强相关练习。"
+            # 生成针对性的教学建议
+            teaching_suggestions = ai_processor.generate_teaching_suggestions(
+                grading_results
             )
+            analysis_report += teaching_suggestions
+
+            # 保存分析建议到session
+            self.current_session.data["teaching_suggestions"] = teaching_suggestions
+            self.current_session.save()
 
             return analysis_report
 
@@ -823,9 +710,18 @@ class MathHelperApp:
                         analysis_report += "\n"
 
                 analysis_report += "### 💡 分析建议\n\n"
-                analysis_report += (
-                    "根据以上错误分析，建议重点关注错误较多的知识点，加强相关练习。"
-                )
+                # 优先使用保存的分析建议，如果没有则重新生成
+                teaching_suggestions = data.get("teaching_suggestions")
+                if not teaching_suggestions:
+                    teaching_suggestions = ai_processor.generate_teaching_suggestions(
+                        grading_results
+                    )
+                    # 保存新生成的分析建议
+                    self.current_session.data["teaching_suggestions"] = (
+                        teaching_suggestions
+                    )
+                    self.current_session.save()
+                analysis_report += teaching_suggestions
             else:
                 analysis_report = (
                     "## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误..."
@@ -852,11 +748,11 @@ class MathHelperApp:
                 "## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误...",
             )
 
-    def get_sessions_for_dropdown(self):
-        """获取会话列表供下拉选择使用"""
+    def _get_session_choices(self):
+        """获取会话列表的choices数据"""
         sessions = get_all_sessions()
         if not sessions:
-            return gr.Dropdown(choices=[], value=None, label="历史会话")
+            return []
 
         choices = []
         for session in sessions:
@@ -865,9 +761,15 @@ class MathHelperApp:
             )
             choices.append((display_name, session["path"]))
 
+        return choices
+
+    def get_sessions_for_dropdown(self, default_value=None):
+        """获取会话列表供下拉选择使用"""
+        choices = self._get_session_choices()
+
         return gr.Dropdown(
             choices=choices,
-            value=None,
+            value=default_value,
             label="选择历史会话",
         )
 
@@ -987,10 +889,14 @@ def create_interface():
 
         def regenerate_with_new_session():
             result = app.regenerate_with_new_session()
-            # 获取更新后的会话列表
-            updated_sessions = app.get_sessions_for_dropdown()
-            # 返回结果加上更新后的会话列表
-            return result + (updated_sessions,)
+            # 获取新会话路径（第5个返回值）
+            new_session_path = result[4] if len(result) > 4 else None
+            # 获取更新后的会话列表，设置新会话为默认值
+            updated_sessions = app.get_sessions_for_dropdown(
+                default_value=new_session_path
+            )
+            # 返回前4个结果加上更新后的会话列表（总共5个值）
+            return result[:4] + (updated_sessions,)
 
         def load_session(session_path):
             return app.load_session(session_path)

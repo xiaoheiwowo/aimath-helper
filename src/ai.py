@@ -346,6 +346,228 @@ OCR文本：
             self.logger.error(f"分析错误知识点失败: {e}")
             return {"error_knowledge_points": [], "top_error_points": []}
 
+    def generate_teaching_suggestions(self, grading_results: List[Dict]) -> str:
+        """根据学生答题错误类型生成课堂讲解建议"""
+        try:
+            # 分析错误类型和模式
+            error_analysis = self._analyze_error_patterns(grading_results)
+
+            # 生成针对性的教学建议
+            suggestions = self._generate_targeted_suggestions(error_analysis)
+
+            return suggestions
+
+        except Exception as e:
+            self.logger.error(f"生成教学建议失败: {e}")
+            return "根据以上错误分析，建议重点关注错误较多的知识点，加强相关练习。"
+
+    def _analyze_error_patterns(self, grading_results: List[Dict]) -> Dict[str, Any]:
+        """分析错误模式和类型"""
+        error_patterns = {
+            "choice_errors": [],
+            "calculation_errors": [],
+            "common_mistakes": [],
+            "knowledge_gaps": [],
+        }
+
+        for result in grading_results:
+            question_type = result.get("question_type", "")
+            is_incorrect = False
+
+            if question_type == "choice":
+                is_incorrect = not result.get("is_correct", True)
+                if is_incorrect:
+                    error_patterns["choice_errors"].append(
+                        {
+                            "question": result.get("question_text", ""),
+                            "student_answer": result.get("student_answer", ""),
+                            "correct_answer": result.get("correct_answer", ""),
+                            "explanation": result.get("explanation", ""),
+                            "knowledge_points": result.get("knowledge_points", []),
+                        }
+                    )
+            elif question_type == "calculation":
+                is_incorrect = not result.get("overall_correct", True)
+                if is_incorrect:
+                    steps_analysis = result.get("steps_analysis", [])
+                    error_steps = [
+                        step
+                        for step in steps_analysis
+                        if not step.get("is_correct", True)
+                    ]
+
+                    error_patterns["calculation_errors"].append(
+                        {
+                            "question": result.get("question_text", ""),
+                            "student_steps": result.get("student_steps", []),
+                            "error_steps": error_steps,
+                            "final_answer_correct": result.get(
+                                "final_answer_correct", False
+                            ),
+                            "knowledge_points": result.get("knowledge_points", []),
+                        }
+                    )
+
+        # 分析常见错误模式
+        error_patterns["common_mistakes"] = self._identify_common_mistakes(
+            error_patterns
+        )
+        error_patterns["knowledge_gaps"] = self._identify_knowledge_gaps(
+            grading_results
+        )
+
+        return error_patterns
+
+    def _identify_common_mistakes(self, error_patterns: Dict[str, Any]) -> List[str]:
+        """识别常见错误模式"""
+        common_mistakes = []
+
+        # 分析选择题常见错误
+        choice_errors = error_patterns["choice_errors"]
+        if choice_errors:
+            # 统计错误选项分布
+            wrong_choices = {}
+            for error in choice_errors:
+                choice = error.get("student_answer", "")
+                if choice in wrong_choices:
+                    wrong_choices[choice] += 1
+                else:
+                    wrong_choices[choice] = 1
+
+            # 找出最常见的错误选项
+            if wrong_choices:
+                most_common_wrong = max(wrong_choices.items(), key=lambda x: x[1])
+                if most_common_wrong[1] > 1:  # 如果错误次数大于1
+                    common_mistakes.append(
+                        f"选择题中选项{most_common_wrong[0]}被错误选择{most_common_wrong[1]}次"
+                    )
+
+        # 分析计算题常见错误
+        calculation_errors = error_patterns["calculation_errors"]
+        if calculation_errors:
+            # 统计错误步骤类型
+            step_error_types = {}
+            for error in calculation_errors:
+                error_steps = error.get("error_steps", [])
+                for step in error_steps:
+                    explanation = step.get("explanation", "")
+                    if "符号" in explanation:
+                        step_error_types["符号错误"] = (
+                            step_error_types.get("符号错误", 0) + 1
+                        )
+                    elif "运算顺序" in explanation or "优先级" in explanation:
+                        step_error_types["运算顺序错误"] = (
+                            step_error_types.get("运算顺序错误", 0) + 1
+                        )
+                    elif "计算" in explanation:
+                        step_error_types["计算错误"] = (
+                            step_error_types.get("计算错误", 0) + 1
+                        )
+
+            # 添加最常见的错误类型
+            for error_type, count in step_error_types.items():
+                if count > 1:
+                    common_mistakes.append(f"计算题中{error_type}出现{count}次")
+
+        return common_mistakes
+
+    def _identify_knowledge_gaps(self, grading_results: List[Dict]) -> List[str]:
+        """识别知识盲点"""
+        knowledge_gaps = []
+
+        # 统计错误知识点
+        error_knowledge_points = {}
+        for result in grading_results:
+            question_type = result.get("question_type", "")
+            is_incorrect = False
+
+            if question_type == "choice":
+                is_incorrect = not result.get("is_correct", True)
+            elif question_type == "calculation":
+                is_incorrect = not result.get("overall_correct", True)
+
+            if is_incorrect:
+                knowledge_points = result.get("knowledge_points", [])
+                for kp in knowledge_points:
+                    if isinstance(kp, dict):
+                        outline = kp.get("outline", "")
+                        if outline:
+                            error_knowledge_points[outline] = (
+                                error_knowledge_points.get(outline, 0) + 1
+                            )
+
+        # 找出错误最多的知识点
+        if error_knowledge_points:
+            sorted_errors = sorted(
+                error_knowledge_points.items(), key=lambda x: x[1], reverse=True
+            )
+            for outline, count in sorted_errors[:3]:  # 取前3个
+                if count > 1:  # 错误次数大于1
+                    knowledge_gaps.append(f"{outline}相关题目错误{count}次")
+
+        return knowledge_gaps
+
+    def _generate_targeted_suggestions(self, error_patterns: Dict[str, Any]) -> str:
+        """生成针对性的教学建议"""
+        suggestions = []
+        suggestion_count = 1
+
+        # 基于知识盲点生成建议（最重要的）
+        knowledge_gaps = error_patterns["knowledge_gaps"]
+        if knowledge_gaps:
+            gap_topic = knowledge_gaps[0].split("相关")[0]
+            suggestions.append(
+                f"{suggestion_count}. 重点突破：针对{gap_topic}进行专项训练，通过典型例题反复练习。"
+            )
+            suggestion_count += 1
+
+        # 基于常见错误模式生成建议
+        common_mistakes = error_patterns["common_mistakes"]
+        if common_mistakes:
+            if any("符号错误" in mistake for mistake in common_mistakes):
+                suggestions.append(
+                    f"{suggestion_count}. 符号强化：专门练习符号运算，要求学生先确定符号再计算，避免符号错误。"
+                )
+                suggestion_count += 1
+            if any("运算顺序错误" in mistake for mistake in common_mistakes):
+                suggestions.append(
+                    f"{suggestion_count}. 口诀记忆：总结运算顺序口诀（如'先括号，再乘方，乘除加减不乱忙'），帮助学生记忆。"
+                )
+                suggestion_count += 1
+            if any("计算错误" in mistake for mistake in common_mistakes):
+                suggestions.append(
+                    f"{suggestion_count}. 步骤化教学：带着学生一步一步演算，要求写清每一步，避免心算跳步。"
+                )
+                suggestion_count += 1
+
+        # 基于具体错误类型生成建议
+        choice_errors = error_patterns["choice_errors"]
+        calculation_errors = error_patterns["calculation_errors"]
+
+        if choice_errors and calculation_errors:
+            suggestions.append(
+                f"{suggestion_count}. 错因讲解：用学生的典型错题做反例分析，让他们自己找错误并改正。"
+            )
+            suggestion_count += 1
+        elif choice_errors:
+            suggestions.append(
+                f"{suggestion_count}. 概念辨析：通过对比分析易混淆概念，设计变式练习加深理解。"
+            )
+            suggestion_count += 1
+        elif calculation_errors:
+            suggestions.append(
+                f"{suggestion_count}. 验算习惯：培养学生逐步验算的习惯，提高计算准确性。"
+            )
+            suggestion_count += 1
+
+        # 如果没有具体错误模式，提供通用建议
+        if not suggestions:
+            suggestions.append(
+                f"{suggestion_count}. 基础巩固：加强基础概念教学，通过反复练习巩固知识点。"
+            )
+
+        return "\n".join(suggestions)
+
     def ocr_practice(self, image_path: str) -> Dict[str, str]:
         """Extract text using Qwen-VL-OCR model.
 
