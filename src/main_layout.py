@@ -1758,21 +1758,33 @@ def create_web_app_layout():
                             )
                         with gr.Column(scale=2):
                             result_output = gr.Textbox(label="生成结果", lines=10, interactive=False)
-                            export_markdown_btn = gr.Button(
-                                "📥 导出题目", 
-                                variant="primary",
-                            )
-                            export_status = gr.Textbox(
-                                label="导出状态",
-                                value="",
-                                interactive=False,
-                                lines=2,
-                                visible=True
-                            )
-                            download_file = gr.File(
-                                label="下载文件",
-                                visible=False
-                            )
+
+
+                            with gr.Row():
+                                download_pdf_btn = gr.Button(
+                                    "📥 下载试卷（PDF）", 
+                                    variant="primary",
+                                )
+                                download_word_btn = gr.Button(
+                                    "📥 下载试卷（Word）", 
+                                    variant="primary",
+                                )
+
+                            # export_markdown_btn = gr.Button(
+                            #     "📥 导出题目", 
+                            #     variant="primary",
+                            # )
+                            # export_status = gr.Textbox(
+                            #     label="导出状态",
+                            #     value="",
+                            #     interactive=False,
+                            #     lines=2,
+                            #     visible=True
+                            # )
+                            # download_file = gr.File(
+                            #     label="下载文件",
+                            #     visible=False
+                            # )
 
                     gr.Markdown("---")
 
@@ -1928,11 +1940,11 @@ def create_web_app_layout():
         )
 
         # 导出题目
-        export_markdown_btn.click(
-            fn=export_practice,
-            inputs=[practice_markdown],
-            outputs=[export_status, download_file],
-        )
+        # export_markdown_btn.click(
+        #     fn=export_practice,
+        #     inputs=[practice_markdown],
+        #     outputs=[export_status, download_file],
+        # )
 
         # 添加图片
         image_input.change(
