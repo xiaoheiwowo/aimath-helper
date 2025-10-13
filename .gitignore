@@ -6,6 +6,8 @@
 data/*
 !data/8af101c1_20250925_144208
 
+exports
+
 # img/
 output/
 .gradio/

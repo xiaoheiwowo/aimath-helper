@@ -43,7 +43,7 @@ def load_complete_session_data(session_path: str) -> Dict[str, Any]:
 
 def create_session() -> str:
     """创建以ID+时间命名的会话目录"""
-    data_dir = os.getenv('DATA_DIR')
+    data_dir = os.getenv('DATA_DIR', 'data')  # 默认使用 'data' 目录
     session_id = str(uuid.uuid4())[:8]
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     session_name = f"{session_id}_{timestamp}"
@@ -53,7 +53,7 @@ def create_session() -> str:
 
 def get_all_sessions() -> List[Dict[str, Any]]:
     """获取所有会话目录信息"""
-    data_dir = os.getenv('DATA_DIR')
+    data_dir = os.getenv('DATA_DIR', 'data')  # 默认使用 'data' 目录
     sessions = []
     if not os.path.exists(data_dir):
         return sessions
