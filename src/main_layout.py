@@ -1757,8 +1757,7 @@ def create_web_app_layout():
                                 height=1000,
                             )
                         with gr.Column(scale=2):
-                            result_output = gr.Textbox(label="生成结果", lines=10, interactive=False)
-
+                            result_output = gr.Textbox(label="生成依据", lines=10, interactive=False)
 
                             with gr.Row():
                                 download_pdf_btn = gr.Button(
