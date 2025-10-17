@@ -12,12 +12,14 @@ from src.practice.template import render_markdown
 from src.practice.practice import PracticeManager
 from src.ai import AIProcessor
 from src.knowledge_base import knowledge_base
+from src.image_grading import ImageGradingMarker
 
 # 初始化组件（安全初始化，避免API密钥问题）
 try:
     qb = QuestionBank()
     practice_manager = PracticeManager()
     ai_processor = AIProcessor()
+    image_marker = ImageGradingMarker()
 except Exception as e:
     print(f"警告: AI组件初始化失败: {e}")
     print("界面将以演示模式运行，部分功能可能不可用")
@@ -25,6 +27,7 @@ except Exception as e:
     qb = None
     practice_manager = None
     ai_processor = None
+    image_marker = None
 
 class MathHelperApp:
     """数学练习助手应用"""
@@ -212,9 +215,70 @@ class MathHelperApp:
 
                 grading_results.extend(section_results)
 
+            # 生成带标记的图片
+            marked_images = []
+            if image_marker is not None and grading_results:
+                try:
+                    practice_data = self.current_session.data.get("practice_data", {})
+                    # 获取原始图片路径列表
+                    original_images = [
+                        image_path
+                        for image_item in images
+                        for image_path in (
+                            [image_item]
+                            if isinstance(image_item, str)
+                            else [image_item[0]]
+                        )
+                    ]
+
+                    # 生成标记图片，明确指定session目录
+                    if self.current_session.session_path:
+                        # 为每张图片指定输出目录
+                        marked_images = []
+                        for i, image_path in enumerate(original_images):
+                            # 创建graded_images目录
+                            graded_dir = os.path.join(
+                                self.current_session.session_path, "graded_images"
+                            )
+                            os.makedirs(graded_dir, exist_ok=True)
+
+                            # 生成输出路径
+                            base_name = os.path.splitext(os.path.basename(image_path))[
+                                0
+                            ]
+                            output_path = os.path.join(
+                                graded_dir, f"{base_name}_graded.jpg"
+                            )
+
+                            # 标记单张图片
+                            marked_path = image_marker.mark_image_with_grading_results(
+                                image_path, grading_results, practice_data, output_path
+                            )
+                            marked_images.append(marked_path)
+                    else:
+                        # 如果没有session路径，使用默认方法
+                        marked_images = image_marker.batch_mark_images(
+                            original_images,
+                            grading_results,
+                            practice_data,
+                        )
+
+                    # 确保标记图片路径保存到session数据中
+                    if marked_images:
+                        self.current_session.data["marked_images"] = marked_images
+                        self.current_session.save()
+
+                except Exception as e:
+                    print(f"生成标记图片时出错: {str(e)}")
+                    marked_images = []
+
             # 更新会话数据
             self.current_session.data.update(
-                {"student_answers": student_answers, "grading_results": grading_results}
+                {
+                    "student_answers": student_answers,
+                    "grading_results": grading_results,
+                    "marked_images": marked_images,
+                }
             )
             self.current_session.save()
 
@@ -231,7 +295,7 @@ class MathHelperApp:
         # 检查AI组件是否可用
         if ai_processor is None:
             return "⚠️ AI功能不可用，请检查API密钥配置"
-            
+
         try:
             grading_results = self.current_session.data.get("grading_results", [])
             if not grading_results:
@@ -339,7 +403,7 @@ class MathHelperApp:
         # 检查AI组件是否可用
         if ai_processor is None or practice_manager is None:
             return "⚠️ AI功能不可用，请检查API密钥配置", [], ""
-            
+
         try:
             # 检查是否有批改结果
             grading_results = self.current_session.data.get("grading_results", [])
@@ -621,11 +685,11 @@ class MathHelperApp:
     def load_session(self, session_path: str):
         """加载历史会话"""
         if not session_path:
-            return "", "", "", [], "", ""
+            return "", "", "", [], "", "", []
 
         try:
             if not self.current_session.load_from_path(session_path):
-                return "会话数据不存在", "", "", [], "", ""
+                return "会话数据不存在", "", "", [], "", "", []
 
             # 格式化显示
             data = self.current_session.data
@@ -740,6 +804,24 @@ class MathHelperApp:
                     "## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误..."
                 )
 
+            # 获取批改结果图片
+            marked_images = data.get("marked_images", [])
+
+            # 如果marked_images为空但存在graded_images目录，则从目录中加载
+            if not marked_images and self.current_session.session_path:
+                graded_dir = os.path.join(
+                    self.current_session.session_path, "graded_images"
+                )
+                if os.path.exists(graded_dir):
+                    marked_images = []
+                    for file in os.listdir(graded_dir):
+                        if file.lower().endswith(
+                            (".jpg", ".jpeg", ".png", ".gif", ".bmp")
+                        ):
+                            marked_images.append(os.path.join(graded_dir, file))
+                    # 按文件名排序
+                    marked_images.sort()
+
             return (
                 data.get("prompt", ""),
                 result_text,
@@ -747,6 +829,7 @@ class MathHelperApp:
                 self.current_session.get_images(),
                 practice_markdown,
                 analysis_report,
+                marked_images,
             )
 
         except Exception as e:
@@ -757,6 +840,7 @@ class MathHelperApp:
                 [],
                 "",
                 "## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误...",
+                [],
             )
 
     def _get_session_choices(self):
@@ -793,23 +877,85 @@ class MathHelperApp:
             # 创建导出目录
             export_dir = "exports"
             os.makedirs(export_dir, exist_ok=True)
-            
+
             # 生成文件名（包含时间戳）
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"数学练习_{timestamp}.md"
             filepath = os.path.join(export_dir, filename)
-            
+
             # 保存Markdown内容到文件
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(practice_markdown_content)
-            
+
             # 返回成功消息和文件路径
             success_msg = f"✅ 题目已导出成功！\n文件保存位置: {filepath}\n文件名: {filename}"
             return success_msg, filepath
-            
+
         except Exception as e:
             error_msg = f"❌ 导出失败: {str(e)}"
             return error_msg, None
+
+    def get_session_buttons_data(self):
+        """获取session按钮数据，返回按钮的显示状态和文本"""
+        sessions = get_all_sessions()
+        button_data = []
+
+        # 最多显示10个session
+        for i in range(10):
+            if i < len(sessions):
+                session = sessions[i]
+                # 获取session的概要信息
+                prompt = session.get("prompt", "练习")
+                created_at = session.get("created_at", "")
+
+                # 格式化概要文本，限制长度
+                if len(prompt) > 20:
+                    summary = prompt[:20] + "..."
+                else:
+                    summary = prompt
+
+                # 格式化显示文本：概要 + 日期时间（精确到秒）
+                if created_at:
+                    try:
+                        # 解析ISO格式时间字符串
+                        from datetime import datetime
+
+                        dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                        # 格式化为 YYYY-MM-DD HH:MM:SS
+                        formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+                        button_text = f"📄 {summary}   {formatted_time}"
+                    except:
+                        # 如果解析失败，使用原始时间字符串
+                        button_text = f"📄 {summary}   {created_at}"
+                else:
+                    button_text = f"📄 {summary}"
+
+                button_data.append(
+                    {
+                        "visible": True,
+                        "value": button_text,
+                        "session_path": session["path"],
+                    }
+                )
+            else:
+                button_data.append(
+                    {"visible": False, "value": "", "session_path": None}
+                )
+
+        return button_data
+
+    def switch_to_session(self, session_path):
+        """切换到指定的session"""
+        if not session_path:
+            return "请选择有效的会话"
+
+        # 加载session数据
+        success = self.current_session.load_from_path(session_path)
+        if success:
+            return f"已切换到会话: {os.path.basename(session_path)}"
+        else:
+            return f"加载会话失败: {session_path}"
+
 
 def create_web_app_layout():
     """创建模拟 web 应用布局的 Gradio 页面"""
@@ -1182,6 +1328,42 @@ def create_web_app_layout():
     
     .gradio-column {
         gap: 16px !important;
+    }
+    
+    /* Session按钮样式 */
+    .session-button {
+        width: 90% !important;
+        margin: 1px 0 !important;
+        margin-left: 10% !important;
+        padding: 10px 12px !important;
+        background: #f8f9fa !important;
+        border: 1px solid #e9ecef !important;
+        border-radius: 8px !important;
+        text-align: left !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #333 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        white-space: pre-line !important;
+        line-height: 1.4 !important;
+        min-height: 60px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+    }
+    
+    .session-button:hover {
+        background: #e3f2fd !important;
+        border-color: #2196f3 !important;
+        color: #1976d2 !important;
+        transform: translateX(3px) !important;
+        box-shadow: 0 3px 8px rgba(33, 150, 243, 0.2) !important;
+    }
+    
+    .session-button:active {
+        background: #bbdefb !important;
+        transform: translateX(1px) !important;
     }
 
     """
@@ -1569,22 +1751,98 @@ def create_web_app_layout():
 
     # 页面切换函数
     def switch_to_main():
-        return gr.HTML(generate_main_page()), gr.Button("🏠 主页", elem_classes="nav-button active", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=True)
+        return (
+            gr.HTML(generate_main_page()),
+            gr.Button("🏠 主页", elem_classes="nav-button active", variant="secondary"),
+            gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"),
+            gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"),
+            gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
+            gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
+            gr.update(visible=False),
+            gr.update(visible=True),
+            gr.update(visible=False),
+        )
 
     def switch_to_practice():
-        return gr.HTML(generate_practice_page()), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button active", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=True), gr.update(visible=False)
+        return (
+            gr.HTML(generate_practice_page()),
+            gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"),
+            gr.Button(
+                "📄 生成练习", elem_classes="nav-button active", variant="secondary"
+            ),
+            gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"),
+            gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
+            gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
+            gr.update(visible=True),
+            gr.update(visible=False),
+            gr.update(visible=True),
+        )
 
     def switch_to_students():
-        return generate_students_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button active", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
+        return (
+            generate_students_page(),
+            gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"),
+            gr.Button(
+                "👥 学生管理", elem_classes="nav-button active", variant="secondary"
+            ),
+            gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
+            gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+        )
 
     def switch_to_settings():
-        return generate_settings_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button active", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
+        return (
+            generate_settings_page(),
+            gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"),
+            gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"),
+            gr.Button(
+                "⚙️ 系统设置", elem_classes="nav-button active", variant="secondary"
+            ),
+            gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
+            gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+        )
 
     def switch_to_analytics():
-        return generate_analytics_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button active", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
+        return (
+            generate_analytics_page(),
+            gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"),
+            gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"),
+            gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"),
+            gr.Button(
+                "📈 数据分析", elem_classes="nav-button active", variant="secondary"
+            ),
+            gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+        )
 
     def switch_to_help():
-        return generate_help_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button active", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
+        return (
+            generate_help_page(),
+            gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"),
+            gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"),
+            gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"),
+            gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
+            gr.Button(
+                "❓ 帮助中心", elem_classes="nav-button active", variant="secondary"
+            ),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+        )
 
     # 用户登录函数
     def user_login(username, password):
@@ -1650,9 +1908,18 @@ def create_web_app_layout():
                 nav_main = gr.Button("🏠 主页", elem_classes="nav-button active", variant="secondary")
                 nav_practice = gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary")
 
-                for i in range(10):
-                    with gr.Row():
-                        gr.Button(value=f"练习{i+1}", variant="secondary")
+                # 历史session按钮容器 - 仅在练习页面显示
+                with gr.Column(visible=False) as session_buttons_container:
+                    session_buttons = []
+                    for i in range(10):  # 最多显示10个历史session
+                        with gr.Row():
+                            session_btn = gr.Button(
+                                value="",
+                                variant="secondary",
+                                visible=False,
+                                elem_classes="session-button",
+                            )
+                            session_buttons.append(session_btn)
 
                 nav_students = gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary")
                 nav_analytics = gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary")
@@ -1820,11 +2087,11 @@ def create_web_app_layout():
                             )
                         with gr.Column(scale=2):
                             grading_result_gallery = gr.Gallery(
-                                label="批改结果",
+                                label="批改结果图片",
                                 show_label=True,
                                 elem_id="grading_result_gallery",
-                                columns=4,
-                                rows=5,
+                                columns=2,
+                                rows=3,
                                 height=400,
                                 object_fit="cover",
                             )
@@ -1865,32 +2132,98 @@ def create_web_app_layout():
         # 绑定导航事件
         nav_main.click(
             switch_to_main,
-            outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
+            outputs=[
+                main_content,
+                nav_main,
+                nav_practice,
+                nav_students,
+                nav_settings,
+                nav_analytics,
+                nav_help,
+                math_helper_section,
+                user_info_section,
+                session_buttons_container,
+            ],
         )
 
         nav_practice.click(
             switch_to_practice,
-            outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
+            outputs=[
+                main_content,
+                nav_main,
+                nav_practice,
+                nav_students,
+                nav_settings,
+                nav_analytics,
+                nav_help,
+                math_helper_section,
+                user_info_section,
+                session_buttons_container,
+            ],
         )
 
         nav_students.click(
             switch_to_students,
-            outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
+            outputs=[
+                main_content,
+                nav_main,
+                nav_practice,
+                nav_students,
+                nav_settings,
+                nav_analytics,
+                nav_help,
+                math_helper_section,
+                user_info_section,
+                session_buttons_container,
+            ],
         )
 
         nav_settings.click(
             switch_to_settings,
-            outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
+            outputs=[
+                main_content,
+                nav_main,
+                nav_practice,
+                nav_students,
+                nav_settings,
+                nav_analytics,
+                nav_help,
+                math_helper_section,
+                user_info_section,
+                session_buttons_container,
+            ],
         )
 
         nav_analytics.click(
             switch_to_analytics,
-            outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
+            outputs=[
+                main_content,
+                nav_main,
+                nav_practice,
+                nav_students,
+                nav_settings,
+                nav_analytics,
+                nav_help,
+                math_helper_section,
+                user_info_section,
+                session_buttons_container,
+            ],
         )
 
         nav_help.click(
             switch_to_help,
-            outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
+            outputs=[
+                main_content,
+                nav_main,
+                nav_practice,
+                nav_students,
+                nav_settings,
+                nav_analytics,
+                nav_help,
+                math_helper_section,
+                user_info_section,
+                session_buttons_container,
+            ],
         )
 
         # refresh_btn.click(
@@ -1903,7 +2236,10 @@ def create_web_app_layout():
             return app.generate_questions_from_prompt(prompt, choice_count, calculation_count)
 
         def process_images(images):
-            return app.process_student_images(images)
+            report, _ = app.process_student_images(images)
+            # 获取标记后的图片
+            marked_images = app.current_session.data.get("marked_images", [])
+            return report, marked_images
 
         def analyze_errors():
             return app.analyze_errors_only()
@@ -1944,6 +2280,26 @@ def create_web_app_layout():
         def export_practice(practice_markdown_content):
             return app.export_practice_to_file(practice_markdown_content)
 
+        def update_session_buttons():
+            """更新session按钮的显示状态和文本"""
+            button_data = app.get_session_buttons_data()
+            updates = []
+            for i, data in enumerate(button_data):
+                updates.append(gr.update(visible=data["visible"], value=data["value"]))
+            return updates
+
+        def handle_session_button_click(button_index):
+            """处理session按钮点击事件"""
+            button_data = app.get_session_buttons_data()
+            if button_index < len(button_data) and button_data[button_index]["visible"]:
+                session_path = button_data[button_index]["session_path"]
+                if session_path:
+                    # 切换到指定的session
+                    result = app.load_session(session_path)
+                    return result
+            # 返回默认的空值，与load_session的返回格式一致
+            return "", "请选择有效的会话", "", [], "", "", []
+
         # 生成题目
         generate_btn.click(
             fn=generate_questions,
@@ -1953,6 +2309,13 @@ def create_web_app_layout():
                 images_gallery,
                 practice_markdown,
             ],
+        )
+
+        # 生成题目后更新session按钮
+        generate_btn.click(
+            fn=update_session_buttons,
+            inputs=[],
+            outputs=session_buttons,
         )
 
         # 导出题目
@@ -1980,7 +2343,7 @@ def create_web_app_layout():
         process_images_btn.click(
             fn=process_images,
             inputs=[images_gallery],
-            outputs=[grading_report, error_analysis],
+            outputs=[grading_report, grading_result_gallery],
         )
 
         # 分析错误
@@ -2002,6 +2365,13 @@ def create_web_app_layout():
             ],
         )
 
+        # 重新出题后更新session按钮
+        regenerate_btn.click(
+            fn=update_session_buttons,
+            inputs=[],
+            outputs=session_buttons,
+        )
+
         # 会话选择
         session_dropdown.change(
             fn=load_session,
@@ -2013,6 +2383,7 @@ def create_web_app_layout():
                 images_gallery,
                 practice_markdown,
                 error_analysis,
+                grading_result_gallery,
             ],
         )
 
@@ -2021,6 +2392,25 @@ def create_web_app_layout():
 
         # 页面加载时初始化会话列表
         demo.load(fn=get_sessions, outputs=[session_dropdown])
+
+        # 页面加载时初始化session按钮
+        demo.load(fn=update_session_buttons, outputs=session_buttons)
+
+        # 为每个session按钮绑定点击事件
+        for i, session_btn in enumerate(session_buttons):
+            session_btn.click(
+                fn=lambda idx=i: handle_session_button_click(idx),
+                inputs=[],
+                outputs=[
+                    prompt_input,
+                    result_output,
+                    grading_report,
+                    images_gallery,
+                    practice_markdown,
+                    error_analysis,
+                    grading_result_gallery,
+                ],
+            )
 
         # 添加一些示例交互
         gr.HTML("""
