@@ -112,6 +112,7 @@ class MathHelperApp:
             # 处理每张图片
             student_answers = []
             grading_results = []
+            question_positions_map = {}
 
             for i, image_item in enumerate(images):
                 # 处理 Gallery 组件返回的数据格式
@@ -153,6 +154,7 @@ class MathHelperApp:
                 # 添加学生信息到答案中
                 student_answer["student_name"] = student_name
                 student_answer["student_id"] = student_id
+
                 student_answers.append(student_answer)
 
                 # 批改答案
@@ -231,6 +233,45 @@ class MathHelperApp:
                         )
                     ]
 
+                    # 使用AI检测题目位置（如果可用）
+                    if ai_processor is not None:
+                        print("🔍 使用AI检测题目位置...")
+                        for image_path in original_images:
+                            try:
+                                # 直接获取AI检测的原始位置信息
+                                question_areas = ai_processor.detect_question_areas(
+                                    image_path, practice_data
+                                )
+                                if question_areas:
+                                    question_positions_map[image_path] = question_areas
+                                    print(
+                                        f"✅ 检测到 {len(question_areas)} 个题目位置: {image_path}"
+                                    )
+                                else:
+                                    print(f"⚠️ 未检测到题目位置: {image_path}")
+                            except Exception as e:
+                                print(f"❌ 题目位置检测失败 {image_path}: {e}")
+                    else:
+                        print("⚠️ AI处理器不可用，使用估算位置")
+
+                    # 将题目位置信息添加到对应的学生答案中
+                    for i, student_answer in enumerate(student_answers):
+                        if i < len(original_images):
+                            image_path = original_images[i]
+                            if image_path in question_positions_map:
+                                # 直接使用AI检测的原始位置信息
+                                question_areas = question_positions_map[image_path]
+
+                                # 保存到sections中
+                                updated_student_answers = (
+                                    ai_processor.save_question_positions_to_sections(
+                                        question_areas, [student_answer]
+                                    )
+                                )
+                                # 更新student_answers中的对应项
+                                student_answers[i] = updated_student_answers[0]
+                                print("📍 已保存题目位置信息到sections中")
+
                     # 生成标记图片，明确指定session目录
                     if self.current_session.session_path:
                         # 为每张图片指定输出目录
@@ -250,9 +291,37 @@ class MathHelperApp:
                                 graded_dir, f"{base_name}_graded.jpg"
                             )
 
+                            # 获取该图片的题目位置并转换为批改位置
+                            question_areas = question_positions_map.get(image_path)
+                            question_positions = None
+                            if question_areas:
+                                # 转换为批改位置格式
+                                question_positions = []
+                                for area in question_areas:
+                                    answer_area = area.get("answer_area", {})
+                                    grading_position = {
+                                        "question_number": area.get(
+                                            "question_number", ""
+                                        ),
+                                        "question_type": area.get("question_type", ""),
+                                        "x": answer_area.get("x", 0)
+                                        + answer_area.get("width", 0)
+                                        + 20,
+                                        "y": answer_area.get("y", 0)
+                                        + answer_area.get("height", 0) // 2,
+                                        "width": 100,
+                                        "height": 100,
+                                        "confidence": area.get("confidence", 0.5),
+                                    }
+                                    question_positions.append(grading_position)
+
                             # 标记单张图片
                             marked_path = image_marker.mark_image_with_grading_results(
-                                image_path, grading_results, practice_data, output_path
+                                image_path,
+                                grading_results,
+                                practice_data,
+                                output_path,
+                                question_positions,
                             )
                             marked_images.append(marked_path)
                     else:
@@ -261,6 +330,7 @@ class MathHelperApp:
                             original_images,
                             grading_results,
                             practice_data,
+                            question_positions_map if question_positions_map else None,
                         )
 
                     # 确保标记图片路径保存到session数据中
@@ -511,6 +581,38 @@ class MathHelperApp:
 
             student_grading_results[student_id]["results"].append(result)
 
+        # 从student_answers中提取题目位置信息
+        student_question_positions = {}
+        for student_answer in student_answers:
+            student_id = student_answer.get("student_id", "unknown")
+            sections = student_answer.get("sections", [])
+
+            # 从sections中提取位置信息
+            question_positions = []
+            for section in sections:
+                questions = section.get("questions", [])
+                for i, question in enumerate(questions):
+                    positions = question.get("positions", {})
+                    if positions:
+                        question_positions.append(
+                            {
+                                "question_number": str(i + 1),
+                                "question_type": section.get("type", ""),
+                                "x": positions.get("grading_position", {}).get("x", 0),
+                                "y": positions.get("grading_position", {}).get("y", 0),
+                                "width": positions.get("grading_position", {}).get(
+                                    "width", 100
+                                ),
+                                "height": positions.get("grading_position", {}).get(
+                                    "height", 100
+                                ),
+                                "confidence": positions.get("confidence", 0.5),
+                            }
+                        )
+
+            if question_positions:
+                student_question_positions[student_id] = question_positions
+
         # 计算每个学生的统计信息
         for student_id, data in student_grading_results.items():
             results = data["results"]
@@ -668,6 +770,31 @@ class MathHelperApp:
             report += f"**题目{i}:** {question['text']}\n"
         report += "\n"
 
+        # 添加题目位置信息
+        if student_question_positions:
+            report += "### 📍 题目位置信息\n\n"
+            report += "以下是通过AI检测到的题目在图片中的位置信息：\n\n"
+
+            for student_id, positions in student_question_positions.items():
+                student_name = student_grading_results.get(student_id, {}).get(
+                    "name", "未知学生"
+                )
+                report += f"**{student_name}:**\n"
+                report += "| 题目 | 位置坐标 | 答题区域 | 置信度 |\n"
+                report += "|------|----------|----------|--------|\n"
+
+                for pos in positions:
+                    question_num = pos.get("question_number", "")
+                    x = pos.get("x", 0)
+                    y = pos.get("y", 0)
+                    width = pos.get("width", 0)
+                    height = pos.get("height", 0)
+                    confidence = pos.get("confidence", 0)
+
+                    report += f"| {question_num} | ({x}, {y}) | {width}×{height} | {confidence:.2f} |\n"
+
+                report += "\n"
+
         return report
 
     def _is_question_correct(self, result: Dict) -> bool:
@@ -804,8 +931,33 @@ class MathHelperApp:
                     "## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误..."
                 )
 
-            # 获取批改结果图片
+            # 检查是否有题目位置信息，如果有则重新生成标记图片
             marked_images = data.get("marked_images", [])
+            has_question_positions = any(
+                any(
+                    question.get("positions")
+                    for section in student.get("sections", [])
+                    for question in section.get("questions", [])
+                )
+                for student in student_answers
+            )
+
+            if has_question_positions and grading_results and image_marker is not None:
+                print("🔄 检测到题目位置信息，重新生成标记图片...")
+                try:
+                    # 重新生成标记图片
+                    marked_images = self._regenerate_marked_images_with_positions(
+                        grading_results, student_answers, practice_data
+                    )
+                    if marked_images:
+                        # 更新session数据
+                        self.current_session.data["marked_images"] = marked_images
+                        self.current_session.save()
+                        print(f"✅ 已重新生成 {len(marked_images)} 张标记图片")
+                except Exception as e:
+                    print(f"❌ 重新生成标记图片失败: {e}")
+                    # 如果重新生成失败，使用原有的图片
+                    pass
 
             # 如果marked_images为空但存在graded_images目录，则从目录中加载
             if not marked_images and self.current_session.session_path:
@@ -842,6 +994,123 @@ class MathHelperApp:
                 "## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误...",
                 [],
             )
+
+    def _regenerate_marked_images_with_positions(
+        self,
+        grading_results: List[Dict],
+        student_answers: List[Dict],
+        practice_data: Dict[str, Any],
+    ) -> List[str]:
+        """
+        使用保存的题目位置信息重新生成标记图片
+
+        Args:
+            grading_results: 批改结果列表
+            student_answers: 学生答案列表（包含题目位置信息）
+            practice_data: 练习数据
+
+        Returns:
+            重新生成的标记图片路径列表
+        """
+        if not self.current_session.session_path:
+            return []
+
+        marked_images = []
+
+        # 获取原始图片路径
+        original_images = self.current_session.get_images()
+        if not original_images:
+            return []
+
+        # 为每张图片重新生成标记
+        for i, image_path in enumerate(original_images):
+            try:
+                # 找到对应的学生答案和题目位置
+                student_answer = None
+                question_positions = None
+
+                for student in student_answers:
+                    student_id = student.get("student_id", "")
+                    # 通过student_id找到对应的图片（简化处理，假设按顺序对应）
+                    student_index = (
+                        int(student_id.split("_")[1]) - 1 if "_" in student_id else 0
+                    )
+                    if student_index == i:
+                        student_answer = student
+                        # 从sections中提取位置信息
+                        question_positions = self._extract_positions_from_sections(
+                            student
+                        )
+                        break
+
+                if not question_positions:
+                    # 如果没有位置信息，使用估算方法
+                    question_positions = None
+
+                # 创建graded_images目录
+                graded_dir = os.path.join(
+                    self.current_session.session_path, "graded_images"
+                )
+                os.makedirs(graded_dir, exist_ok=True)
+
+                # 生成输出路径
+                base_name = os.path.splitext(os.path.basename(image_path))[0]
+                output_path = os.path.join(graded_dir, f"{base_name}_graded.jpg")
+
+                # 重新生成标记图片
+                marked_path = image_marker.mark_image_with_grading_results(
+                    image_path,
+                    grading_results,
+                    practice_data,
+                    output_path,
+                    question_positions,
+                )
+                marked_images.append(marked_path)
+
+            except Exception as e:
+                print(f"❌ 重新生成图片 {image_path} 失败: {e}")
+                continue
+
+        return marked_images
+
+    def _extract_positions_from_sections(
+        self, student_answer: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        从sections中提取题目位置信息
+
+        Args:
+            student_answer: 学生答案数据
+
+        Returns:
+            题目位置信息列表
+        """
+        question_positions = []
+        sections = student_answer.get("sections", [])
+
+        for section in sections:
+            questions = section.get("questions", [])
+            for i, question in enumerate(questions):
+                positions = question.get("positions", {})
+                if positions:
+                    # 从原始位置信息计算批改位置
+                    answer_area = positions.get("answer_area", {})
+                    grading_x = answer_area.get("x", 0) + answer_area.get("width", 0) + 20
+                    grading_y = answer_area.get("y", 0) + answer_area.get("height", 0) // 2
+                    
+                    question_positions.append(
+                        {
+                            "question_number": str(i + 1),
+                            "question_type": section.get("type", ""),
+                            "x": grading_x,
+                            "y": grading_y,
+                            "width": 100,
+                            "height": 100,
+                            "confidence": positions.get("confidence", 0.5),
+                        }
+                    )
+
+        return question_positions
 
     def _get_session_choices(self):
         """获取会话列表的choices数据"""

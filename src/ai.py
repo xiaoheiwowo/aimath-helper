@@ -642,3 +642,302 @@ OCR文本：
         """Use rule-based parsing as fallback"""
         # 简单的规则解析，返回空列表
         return []
+
+    def detect_question_areas(
+        self, image_path: str, practice_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        检测图片中的题目区域
+
+        Args:
+            image_path: 图片路径
+            practice_data: 练习数据，包含题目信息
+
+        Returns:
+            题目区域信息列表，包含题号、位置坐标等
+        """
+        try:
+            # 编码图片为base64
+            with open(image_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+            # 构建题目信息供AI参考
+            question_info = self._build_question_info(practice_data)
+
+            # 构建prompt
+            prompt = self._build_detection_prompt(question_info)
+
+            # 调用qwen-vl-plus模型
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt,
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            },
+                        },
+                    ],
+                }
+            ]
+
+            response = self.ai_client.chat.completions.create(
+                model="qwen-vl-plus",
+                messages=messages,
+                max_tokens=2000,
+                temperature=0.1,
+            )
+
+            response_text = response.choices[0].message.content
+
+            # 解析AI返回的结果
+            question_areas = self._parse_detection_result(response_text, practice_data)
+
+            self.logger.info(f"检测到 {len(question_areas)} 个题目区域")
+            return question_areas
+
+        except Exception as e:
+            self.logger.error(f"题目区域检测失败: {e}")
+            return []
+
+    def get_question_positions_for_grading(
+        self, image_path: str, practice_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        获取用于批改标记的题目位置信息
+
+        Args:
+            image_path: 图片路径
+            practice_data: 练习数据
+
+        Returns:
+            用于批改标记的位置信息列表
+        """
+        question_areas = self.detect_question_areas(image_path, practice_data)
+
+        # 转换为批改标记需要的格式
+        grading_positions = []
+
+        for area in question_areas:
+            answer_area = area.get("answer_area", {})
+
+            # 计算标记位置（在答题区域的右侧）
+            x = (
+                answer_area.get("x", 0) + answer_area.get("width", 0) + 20
+            )  # 答题区域右侧20像素
+            y = (
+                answer_area.get("y", 0) + answer_area.get("height", 0) // 2
+            )  # 答题区域垂直居中
+
+            grading_position = {
+                "question_number": area.get("question_number", ""),
+                "question_type": area.get("question_type", ""),
+                "x": int(x),
+                "y": int(y),
+                "width": 100,  # 标记区域宽度
+                "height": 100,  # 标记区域高度
+                "confidence": area.get("confidence", 0.5),
+            }
+
+            grading_positions.append(grading_position)
+
+        return grading_positions
+
+    def save_question_positions_to_sections(
+        self,
+        question_areas: List[Dict[str, Any]],
+        student_answers: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """
+        将题目位置信息保存到sections[].questions[].positions中
+
+        Args:
+            question_areas: AI检测到的题目区域信息
+            student_answers: 学生答案数据
+
+        Returns:
+            更新后的学生答案数据
+        """
+        # 为每个学生答案添加位置信息
+        for student_answer in student_answers:
+            sections = student_answer.get("sections", [])
+
+            # 按题目类型和序号组织位置信息
+            positions_by_type_and_number = {}
+            for area in question_areas:
+                question_type = area.get("question_type", "")
+                question_number = area.get("question_number", "")
+
+                if question_type not in positions_by_type_and_number:
+                    positions_by_type_and_number[question_type] = {}
+
+                positions_by_type_and_number[question_type][question_number] = {
+                    "area": area.get("area", {}),
+                    "answer_area": area.get("answer_area", {}),
+                    "confidence": area.get("confidence", 0.5),
+                }
+
+            # 将位置信息添加到对应的题目中
+            for section in sections:
+                section_type = section.get("type", "")
+                questions = section.get("questions", [])
+
+                if section_type in positions_by_type_and_number:
+                    type_positions = positions_by_type_and_number[section_type]
+
+                    for i, question in enumerate(questions):
+                        question_number = str(i + 1)  # 题目序号从1开始
+
+                        if question_number in type_positions:
+                            question["positions"] = type_positions[question_number]
+
+        return student_answers
+
+    def _build_question_info(self, practice_data: Dict[str, Any]) -> str:
+        """构建题目信息字符串供AI参考"""
+        question_info = []
+
+        for section in practice_data.get("sections", []):
+            section_name = section.get("name", "")
+            section_type = section.get("type", "")
+            questions = section.get("questions", [])
+
+            question_info.append(f"## {section_name} ({section_type})")
+
+            for i, question in enumerate(questions, 1):
+                question_id = question.get("id", "")
+                question_text = question.get("question", "")
+
+                # 截取题目文本的前100个字符作为参考
+                short_question = (
+                    question_text[:100] + "..."
+                    if len(question_text) > 100
+                    else question_text
+                )
+
+                question_info.append(f"{i}. 题目ID: {question_id}")
+                question_info.append(f"   内容: {short_question}")
+                question_info.append("")
+
+        return "\n".join(question_info)
+
+    def _build_detection_prompt(self, question_info: str) -> str:
+        """构建检测prompt"""
+        return """你是一位专业的数学老师，需要识别学生练习试卷中的题目区域。
+
+请仔细分析这张学生答题图片，识别以下内容：
+
+1. **题目编号识别**：
+   - 找到所有题目编号（如"1."、"2."、"一、"、"二、"等）
+   - 识别题目编号的具体位置坐标
+
+2. **答题区域识别**：
+   - 找到每道题对应的学生答题区域
+   - 识别答题区域的位置坐标
+   - 注意答题区域可能包括：
+     * 选择题的选项标记（A、B、C、D等）
+     * 计算题的解题过程和答案
+     * 填空题的答案填写位置
+
+3. **区域边界确定**：
+   - 为每道题确定一个矩形区域，包含题目和答题内容
+   - 区域应该足够大以包含完整的题目和答题内容
+
+4. **题目类型识别**：
+   - 识别题目类型：选择题（choice）或计算题（calculation）
+   - 选择题通常有A、B、C、D选项
+   - 计算题通常有解题过程和最终答案
+
+请按照以下JSON格式返回结果：
+{{
+  "question_areas": [
+    {{
+      "question_number": "题目编号（如1、2、一、二等）",
+      "question_type": "题目类型（choice/calculation）",
+      "area": {{
+        "x": "左上角x坐标",
+        "y": "左上角y坐标", 
+        "width": "区域宽度",
+        "height": "区域高度"
+      }},
+      "answer_area": {{
+        "x": "答题区域左上角x坐标",
+        "y": "答题区域左上角y坐标",
+        "width": "答题区域宽度", 
+        "height": "答题区域高度"
+      }},
+      "confidence": "识别置信度（0-1）"
+    }}
+  ]
+}}
+
+要求：
+1. 坐标使用像素单位，以图片左上角为原点(0,0)
+2. 确保识别到的题目编号按顺序排列
+3. 如果无法确定某个题目的位置，请设置confidence为较低值
+4. 答题区域应该包含学生实际填写答案的地方
+5. 只返回JSON格式，不要添加其他解释文字
+
+请开始分析图片："""
+
+    def _parse_detection_result(
+        self, response_text: str, practice_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """解析AI返回的检测结果"""
+        try:
+            # 清理响应文本
+            clean_text = response_text.strip()
+            if clean_text.startswith("```json"):
+                clean_text = clean_text[7:]
+            if clean_text.endswith("```"):
+                clean_text = clean_text[:-3]
+            clean_text = clean_text.strip()
+
+            # 解析JSON
+            result = json.loads(clean_text)
+            question_areas = result.get("question_areas", [])
+
+            # 验证和清理结果
+            validated_areas = []
+            for area in question_areas:
+                if self._validate_question_area(area):
+                    validated_areas.append(area)
+
+            return validated_areas
+
+        except json.JSONDecodeError as e:
+            self.logger.error(f"解析检测结果JSON失败: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"解析检测结果失败: {e}")
+            return []
+
+    def _validate_question_area(self, area: Dict[str, Any]) -> bool:
+        """验证题目区域数据的有效性"""
+        required_fields = ["question_number", "question_id", "area", "answer_area"]
+
+        for field in required_fields:
+            if field not in area:
+                return False
+
+        # 验证坐标数据
+        area_coords = area.get("area", {})
+        answer_coords = area.get("answer_area", {})
+
+        coord_fields = ["x", "y", "width", "height"]
+        for field in coord_fields:
+            if field not in area_coords or field not in answer_coords:
+                return False
+
+            try:
+                int(area_coords[field])
+                int(answer_coords[field])
+            except (ValueError, TypeError):
+                return False
+
+        return True
