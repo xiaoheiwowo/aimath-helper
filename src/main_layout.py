@@ -813,7 +813,7 @@ class MathHelperApp:
 
 def create_web_app_layout():
     """创建模拟 web 应用布局的 Gradio 页面"""
-    
+
     # 自定义 CSS 样式
     custom_css = """
     .header-container {
@@ -1183,32 +1183,9 @@ def create_web_app_layout():
     .gradio-column {
         gap: 16px !important;
     }
-    
-    /* 练习试卷Markdown组件样式 */
-    #practice_markdown {
-        min-height: 400px !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
-        padding: 16px !important;
-        background: #f8f9fa !important;
-        overflow-y: auto !important;
-    }
-    
-    #practice_markdown .markdown-body {
-        min-height: 350px !important;
-    }
-    
-    /* 当没有内容时显示占位符 */
-    #practice_markdown:empty::before {
-        content: "练习试卷将在这里显示...";
-        color: #999;
-        font-style: italic;
-        display: block;
-        text-align: center;
-        padding: 50px 20px;
-    }
+
     """
-    
+
     # 模拟数据
     def get_dashboard_data():
         return {
@@ -1217,7 +1194,7 @@ def create_web_app_layout():
             "completed_exercises": random.randint(500, 2000),
             "average_score": round(random.uniform(75, 95), 1)
         }
-    
+
     def get_recent_activities():
         activities = [
             "学生 李明 完成了代数练习",
@@ -1228,10 +1205,10 @@ def create_web_app_layout():
             "班级平均分提升了 5 分"
         ]
         return random.sample(activities, 4)
-    
+
     # 创建数学练习助手应用实例
     app = MathHelperApp()
-    
+
     # 主页内容生成函数
     def generate_main_page():
         return """
@@ -1296,7 +1273,7 @@ def create_web_app_layout():
             </div>
         </div>
         """
-    
+
     # 练习页面内容生成函数
     def generate_practice_page():
         return """
@@ -1304,7 +1281,7 @@ def create_web_app_layout():
             <h2 style="color: #333; margin-bottom: 30px;">📄 生成练习</h2>
         </div>
         """
-    
+
     def generate_students_page():
         # 模拟学生答题数据
         students_data = [
@@ -1354,8 +1331,8 @@ def create_web_app_layout():
                 "status": "积极学习"
             }
         ]
-        
-        students_html = f"""
+
+        students_html = """
         <div class="main-content">
             <h2 style="color: #333; margin-bottom: 30px;">👥 学生答题情况</h2>
             
@@ -1399,7 +1376,7 @@ def create_web_app_layout():
                     </thead>
                     <tbody>
         """
-        
+
         for student in students_data:
             # 根据正确率设置颜色
             if student["accuracy"] >= 90:
@@ -1417,7 +1394,7 @@ def create_web_app_layout():
                 status_bg = "#fff3cd"
                 status_color = "#856404"
                 status_text = "需提升"
-            
+
             students_html += f"""
                         <tr>
                             <td style="padding: 15px; border-bottom: 1px solid #eee; font-weight: 500;">{student['name']}</td>
@@ -1431,7 +1408,7 @@ def create_web_app_layout():
                             </td>
                         </tr>
             """
-        
+
         students_html += """
                     </tbody>
                 </table>
@@ -1444,9 +1421,9 @@ def create_web_app_layout():
         </div>
         """
         return students_html
-    
+
     def generate_settings_page():
-        settings_html = f"""
+        settings_html = """
         <div class="main-content">
             <h2 style="color: #333; margin-bottom: 30px;">⚙️ 教师设置</h2>
             
@@ -1494,9 +1471,9 @@ def create_web_app_layout():
         </div>
         """
         return settings_html
-    
+
     def generate_analytics_page():
-        analytics_html = f"""
+        analytics_html = """
         <div class="main-content">
             <h2 style="color: #333; margin-bottom: 30px;">📈 数据分析</h2>
             
@@ -1556,9 +1533,9 @@ def create_web_app_layout():
         </div>
         """
         return analytics_html
-    
+
     def generate_help_page():
-        help_html = f"""
+        help_html = """
         <div class="main-content">
             <h2 style="color: #333; margin-bottom: 30px;">❓ 帮助中心</h2>
             
@@ -1589,33 +1566,33 @@ def create_web_app_layout():
         </div>
         """
         return help_html
-    
+
     # 页面切换函数
     def switch_to_main():
         return gr.HTML(generate_main_page()), gr.Button("🏠 主页", elem_classes="nav-button active", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=True)
-    
+
     def switch_to_practice():
         return gr.HTML(generate_practice_page()), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button active", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=True), gr.update(visible=False)
-    
+
     def switch_to_students():
         return generate_students_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button active", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
-    
+
     def switch_to_settings():
         return generate_settings_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button active", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
-    
+
     def switch_to_analytics():
         return generate_analytics_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button active", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
-    
+
     def switch_to_help():
         return generate_help_page(), gr.Button("🏠 主页", elem_classes="nav-button", variant="secondary"), gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary"), gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary"), gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"), gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"), gr.Button("❓ 帮助中心", elem_classes="nav-button active", variant="secondary"), gr.update(visible=False), gr.update(visible=False)
-    
+
     # 用户登录函数
     def user_login(username, password):
         if username and password:
             return f"欢迎回来，{username}！", "已登录"
         else:
             return "请输入用户名和密码", "未登录"
-    
+
     # 创建界面
     # 自定义主题，与主布局风格保持一致
     custom_theme = gr.themes.Soft(
@@ -1645,9 +1622,9 @@ def create_web_app_layout():
         shadow_drop="0 2px 4px rgba(0, 0, 0, 0.1)",
         shadow_drop_lg="0 4px 6px rgba(0, 0, 0, 0.1)",
     )
-    
+
     with gr.Blocks(theme=custom_theme, css=custom_css, title="AI数学助手 - Web应用演示") as demo:
-        
+
         # Header 部分
         with gr.Row():
             with gr.Column(scale=1):
@@ -1665,18 +1642,23 @@ def create_web_app_layout():
                     </div>
                 </div>
                 """)
-        
+
         # 主要内容区域
         with gr.Row():
             # 左侧导航栏
             with gr.Column(scale=1, min_width=200):
                 nav_main = gr.Button("🏠 主页", elem_classes="nav-button active", variant="secondary")
                 nav_practice = gr.Button("📄 生成练习", elem_classes="nav-button", variant="secondary")
+
+                for i in range(10):
+                    with gr.Row():
+                        gr.Button(value=f"练习{i+1}", variant="secondary")
+
                 nav_students = gr.Button("👥 学生管理", elem_classes="nav-button", variant="secondary")
                 nav_analytics = gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary")
                 nav_settings = gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary")
                 nav_help = gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary")
-            
+
             # 右侧工作区
             with gr.Column(scale=4):
                 # 用户信息区域 - 仅在主页显示
@@ -1692,10 +1674,10 @@ def create_web_app_layout():
                                 </div>
                             </div>
                             """)
-                
+
                 # 主要内容显示区域 - 默认显示主页
                 main_content = gr.HTML(generate_main_page())
-                
+
                 # 数学练习助手功能区域 - 仅在练习页面显示
                 with gr.Column(visible=False) as math_helper_section:
                     # gr.Markdown("# 🎓 AIMath Helper - 数学练习助手")
@@ -1712,7 +1694,7 @@ def create_web_app_layout():
                     gr.Markdown("---")
 
                     # 第一步：出题
-                    gr.Markdown("## 第一步：生成练习题目")
+                    gr.Markdown("## 生成练习题目")
 
                     with gr.Row():
                         choice_count_input = gr.Slider(
@@ -1739,7 +1721,6 @@ def create_web_app_layout():
                     )
                     generate_btn = gr.Button("生成题目", variant="primary")
 
-                    
                     with gr.Row():
                         with gr.Column(scale=3):
                             practice_markdown = gr.Markdown(
@@ -1770,7 +1751,7 @@ def create_web_app_layout():
                                 )
 
                             # export_markdown_btn = gr.Button(
-                            #     "📥 导出题目", 
+                            #     "📥 导出题目",
                             #     variant="primary",
                             # )
                             # export_status = gr.Textbox(
@@ -1788,17 +1769,17 @@ def create_web_app_layout():
                     gr.Markdown("---")
 
                     # 第二步：学生答题
-                    gr.Markdown("## 第二步：学生答题（上传图片）")
+                    gr.Markdown("## 上传学生答题结果")
 
                     with gr.Row():
-                        with gr.Column(scale=1):
+                        with gr.Column(scale=3):
                             image_input = gr.Image(
                                 label="上传学生答题图片",
                                 sources=["upload", "clipboard"],
                                 type="pil",
                                 height=450,
                             )
-                        with gr.Column(scale=1):
+                        with gr.Column(scale=2):
                             images_gallery = gr.Gallery(
                                 label="已保存的图片",
                                 show_label=True,
@@ -1812,75 +1793,111 @@ def create_web_app_layout():
 
                     process_images_btn = gr.Button("处理学生答题", variant="primary")
 
-                    # 第三步：批改和分析
-                    gr.Markdown("## 第三步：批改和分析")
-                    grading_report = gr.Markdown(
-                        label="批改报告",
-                        value='## 📊 批改报告\n\n上传学生答题图片后，点击"处理学生答题"按钮开始批改...',
-                        visible=True,
-                        elem_id="grading_report",
-                        latex_delimiters=[
-                            {"left": "$$", "right": "$$", "display": True},  # 块级数学
-                            {"left": "$", "right": "$", "display": False},  # 行内数学
-                        ],
-                    )
+                    gr.Markdown("## 批改和分析")
+
+                    with gr.Row():
+                        with gr.Column(scale=3):
+                            grading_report = gr.Markdown(
+                                label="批改报告",
+                                show_label=True,
+                                value='## 📊 批改报告\n\n上传学生答题图片后，点击"处理学生答题"按钮开始批改...',
+                                # visible=True,
+                                # elem_id="grading_report",
+                                container=True,
+                                height=400,
+                                latex_delimiters=[
+                                    {
+                                        "left": "$$",
+                                        "right": "$$",
+                                        "display": True,
+                                    },  # 块级数学
+                                    {
+                                        "left": "$",
+                                        "right": "$",
+                                        "display": False,
+                                    },  # 行内数学
+                                ],
+                            )
+                        with gr.Column(scale=2):
+                            grading_result_gallery = gr.Gallery(
+                                label="批改结果",
+                                show_label=True,
+                                elem_id="grading_result_gallery",
+                                columns=4,
+                                rows=5,
+                                height=400,
+                                object_fit="cover",
+                            )
 
                     analyze_btn = gr.Button("分析错误知识点", variant="primary")
-                    error_analysis = gr.Markdown(
-                        label="错误分析",
-                        value="## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误...",
-                        visible=True,
-                        elem_id="error_analysis",
-                        latex_delimiters=[
-                            {"left": "$$", "right": "$$", "display": True},  # 块级数学
-                            {"left": "$", "right": "$", "display": False},  # 行内数学
-                        ],
-                    )
+                    with gr.Row():
+                        with gr.Column(scale=3):
+                            error_analysis = gr.Markdown(
+                                label="错误分析",
+                                value="## 📊 错误分析\n\n点击上方按钮开始分析学生答题错误...",
+                                visible=True,
+                                elem_id="error_analysis",
+                                container=True,
+                                height=400,
+                                latex_delimiters=[
+                                    {
+                                        "left": "$$",
+                                        "right": "$$",
+                                        "display": True,
+                                    },  # 块级数学
+                                    {
+                                        "left": "$",
+                                        "right": "$",
+                                        "display": False,
+                                    },  # 行内数学
+                                ],
+                            )
+                        with gr.Column(scale=2):
+                            # 第四步：重新出题
+                            regenerate_btn = gr.Button(
+                                "根据错误重新出题", variant="secondary"
+                            )
 
-                    # 第四步：重新出题
-                    gr.Markdown("## 第四步：针对性练习")
-                    regenerate_btn = gr.Button("根据错误重新出题", variant="primary")
-        
         # 事件绑定
         def handle_refresh():
             return generate_main_page()
-        
+
         # 绑定导航事件
         nav_main.click(
             switch_to_main,
             outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
         )
-        
+
         nav_practice.click(
             switch_to_practice,
             outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
         )
-        
+
         nav_students.click(
             switch_to_students,
             outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
         )
-        
+
         nav_settings.click(
             switch_to_settings,
             outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
         )
-        
+
         nav_analytics.click(
             switch_to_analytics,
             outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
         )
-        
+
         nav_help.click(
             switch_to_help,
             outputs=[main_content, nav_main, nav_practice, nav_students, nav_settings, nav_analytics, nav_help, math_helper_section, user_info_section]
         )
-        
+
         # refresh_btn.click(
         #     handle_refresh,
         #     outputs=[main_content]
         # )
-        
+
         # 数学练习助手事件绑定
         def generate_questions(prompt, choice_count, calculation_count):
             return app.generate_questions_from_prompt(prompt, choice_count, calculation_count)
@@ -2004,14 +2021,14 @@ def create_web_app_layout():
 
         # 页面加载时初始化会话列表
         demo.load(fn=get_sessions, outputs=[session_dropdown])
-        
+
         # 添加一些示例交互
         gr.HTML("""
         <div style="margin-top: 20px; padding: 20px; background: #e3f2fd; border-radius: 10px; text-align: center;">
             <h4 style="color: #1976d2; margin-bottom: 10px;">🎉 欢迎使用 AI数学助手 Web应用演示</h4>
         </div>
         """)
-    
+
     return demo
 
 if __name__ == "__main__":
