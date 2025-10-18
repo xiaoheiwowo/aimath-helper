@@ -1,0 +1,395 @@
+{
+  "prompt": "加法 测试 Mark",
+  "knowledge_points": [
+    "有理数的加法法则",
+    "有理数的加法运算定律"
+  ],
+  "practice_data": {
+    "title": "练习试题",
+    "practice_id": "3f7058cc",
+    "sections": [
+      {
+        "name": "一、选择题",
+        "type": "choice",
+        "question_ids": [
+          "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+          "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a"
+        ],
+        "questions": [
+          {
+            "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+            "type": "choice",
+            "metadata": {
+              "category": "choice"
+            },
+            "question": "下列说法错误的是（   ）",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+              }
+            ],
+            "choices": [
+              {
+                "id": "A",
+                "content": "两数之和可能小于其中的一个加数",
+                "is_correct": false,
+                "explanation": "异号相加时，和小于原来的正数，正确。"
+              },
+              {
+                "id": "B",
+                "content": "两数相加就是它们的绝对值相加",
+                "is_correct": true,
+                "explanation": "异号相加应取绝对值大的数的符号，再用大绝对值减去小绝对值，此说法错误。"
+              },
+              {
+                "id": "C",
+                "content": "两个负数相加，和取负号，绝对值相加",
+                "is_correct": false,
+                "explanation": "同号相加规则，两个负数相加结果为负数，正确。"
+              },
+              {
+                "id": "D",
+                "content": "两个数若不是相反数，则相加不能得零",
+                "is_correct": false,
+                "explanation": "只有互为相反数的两个数相加才为零，因此说法正确。"
+              }
+            ],
+            "answer": "B"
+          },
+          {
+            "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+            "type": "choice",
+            "metadata": {
+              "category": "choice"
+            },
+            "question": "若有理数 $a+b+c<0$，则（   ）",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+              }
+            ],
+            "choices": [
+              {
+                "id": "A",
+                "content": "三个数中至少有两个负数",
+                "is_correct": false,
+                "explanation": "不一定必须有两个负数，例如 $a=-1, b=2, c=-3$。"
+              },
+              {
+                "id": "B",
+                "content": "三个数中有且只有一个负数",
+                "is_correct": false,
+                "explanation": "不一定，只要和小于0，不限制负数个数为1。"
+              },
+              {
+                "id": "C",
+                "content": "三个数中至少有一个负数",
+                "is_correct": true,
+                "explanation": "若 $a+b+c<0$，无论 $b+c$ 大于0还是小于0，总有至少一个数必须为负数。"
+              },
+              {
+                "id": "D",
+                "content": "三个数中有两个是正数或两个是负数",
+                "is_correct": false,
+                "explanation": "不一定成立，无法保证。"
+              }
+            ],
+            "answer": "C"
+          }
+        ]
+      },
+      {
+        "name": "二、计算题",
+        "type": "calculation",
+        "question_ids": [
+          "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+          "qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e"
+        ],
+        "questions": [
+          {
+            "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+            "type": "calculation",
+            "metadata": {
+              "category": "calculation"
+            },
+            "question": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+              }
+            ],
+            "solution_steps": [
+              {
+                "step": "将带分数拆分为整数部分和分数部分：$\\left[ (-2019) + (-\\frac{5}{6}) \\right] + \\left[ (-2018) + (-\\frac{2}{3}) \\right] + (4036 + \\frac{2}{3}) + \\left[ (-1) + (-\\frac{1}{2}) \\right]$"
+              },
+              {
+                "step": "整数部分和分数部分分别相加：$[(-2019) + (-2018) + 4036 + (-1)] + \\left[ (-\\frac{5}{6}) + (-\\frac{2}{3}) + \\frac{2}{3} + (-\\frac{1}{2}) \\right]$"
+              },
+              {
+                "step": "计算整数部分：$(-2019) + (-2018) + 4036 + (-1) = -2$"
+              },
+              {
+                "step": "计算分数部分：$(-\\frac{5}{6}) + (-\\frac{2}{3}) + \\frac{2}{3} + (-\\frac{1}{2}) = -\\frac{4}{3}$"
+              },
+              {
+                "step": "合并结果：$-2 + (-\\frac{4}{3}) = -3\\frac{1}{3}$"
+              }
+            ],
+            "answer": "-2"
+          },
+          {
+            "id": "qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e",
+            "type": "calculation",
+            "metadata": {
+              "category": "calculation"
+            },
+            "question": "计算：$(-3) + 40 + (-32) + (-8)$",
+            "knowledge_points": [
+              {
+                "outline": "有理数的加法法则",
+                "detail": "掌握同号相加与异号相加的规则"
+              }
+            ],
+            "solution_steps": [
+              {
+                "step": "$(-3) + 40 + (-32) + (-8)$"
+              },
+              {
+                "step": "$-3 + 40 - 32 - 8$"
+              },
+              {
+                "step": "$= -3 + 40 - 32 - 8$"
+              },
+              {
+                "step": "$= -3$"
+              }
+            ],
+            "answer": "-3"
+          }
+        ]
+      }
+    ]
+  },
+  "student_answers": [
+    {
+      "name": "小明",
+      "practice_id": "",
+      "sections": [
+        {
+          "name": "一、选择题",
+          "type": "choice",
+          "questions": [
+            {
+              "id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+              "answer": {
+                "choice": "B"
+              },
+              "positions": {
+                "bbox_2d": [
+                  0.03,
+                  0.21,
+                  0.35,
+                  0.3
+                ],
+                "answer_bbox_2d": [
+                  0.03,
+                  0.27,
+                  0.35,
+                  0.34
+                ],
+                "confidence": 0.95
+              }
+            },
+            {
+              "id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+              "answer": {
+                "choice": "A"
+              },
+              "positions": {
+                "bbox_2d": [
+                  0.03,
+                  0.36,
+                  0.35,
+                  0.45
+                ],
+                "answer_bbox_2d": [
+                  0.03,
+                  0.42,
+                  0.35,
+                  0.49
+                ],
+                "confidence": 0.95
+              }
+            }
+          ]
+        },
+        {
+          "name": "二、计算题",
+          "type": "calculation",
+          "questions": [
+            {
+              "id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+              "answer": {
+                "solution_steps": [
+                  "\\left(-2019\\frac{5}{6}\\right)+\\left(-2018\\frac{2}{3}\\right)+4036\\frac{2}{3}+\\left(-1\\frac{1}{2}\\right)",
+                  "=1"
+                ],
+                "result": "1"
+              },
+              "positions": {
+                "bbox_2d": [
+                  0.03,
+                  0.68,
+                  0.45,
+                  0.77
+                ],
+                "answer_bbox_2d": [
+                  0.03,
+                  0.74,
+                  0.45,
+                  0.81
+                ],
+                "confidence": 0.98
+              }
+            },
+            {
+              "id": "qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e",
+              "answer": {
+                "solution_steps": [
+                  "\\left(-3\\right)+40+\\left(-32\\right)+\\left(-8\\right)",
+                  "=-3"
+                ],
+                "result": "-3"
+              },
+              "positions": {
+                "bbox_2d": [
+                  0.03,
+                  0.88,
+                  0.35,
+                  0.95
+                ],
+                "answer_bbox_2d": [
+                  0.03,
+                  0.92,
+                  0.35,
+                  0.98
+                ],
+                "confidence": 0.98
+              }
+            }
+          ]
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    }
+  ],
+  "grading_results": [
+    {
+      "is_correct": true,
+      "student_answer": "B",
+      "correct_answer": "B",
+      "explanation": "",
+      "question_id": "qu_7f3c2f1d-8a6a-4c2a-9d2f-3eab6d92b015",
+      "question_type": "choice",
+      "question_text": "下列说法错误的是（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "⑴同号两数相加，取相同的符号，并把绝对值相加。⑵绝对值不相等的异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值。互为相反数的两个数相加得0。⑶一个数同0相加，仍得这个数。"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "is_correct": false,
+      "student_answer": "A",
+      "correct_answer": "C",
+      "explanation": "不一定必须有两个负数，例如 $a=-1, b=2, c=-3$。",
+      "question_id": "qu_6f1e7c0a-9e52-4b8d-82c2-2f82d412c35a",
+      "question_type": "choice",
+      "question_text": "若有理数 $a+b+c<0$，则（   ）",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则，理解至少一个为负数的推理"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "\\left(-2019\\frac{5}{6}\\right)+\\left(-2018\\frac{2}{3}\\right)+4036\\frac{2}{3}+\\left(-1\\frac{1}{2}\\right)",
+          "is_correct": true,
+          "explanation": "该步骤是题目原始表达式，书写正确，没有运算错误。带分数和负号表示规范，符合数学表达规则。"
+        },
+        {
+          "step_index": 1,
+          "student_step": "=1",
+          "is_correct": false,
+          "explanation": "该步骤直接得出结果为1，跳过了所有中间计算过程，且结果错误。正确的计算应分步处理整数部分与分数部分，并注意符号。例如：-2019又5/6 = - (2019 + 5/6)，同理其他项也需展开。通过合理重组：[(-2019) + (-5/6)] + [(-2018) + (-2/3)] + [4036 + 2/3] + [(-1) + (-1/2)]。先计算整数部分：-2019 -2018 +4036 -1 = (4036) - (2019+2018+1) = 4036 - 4038 = -2。再计算分数部分：-5/6 -2/3 +2/3 -1/2 = -5/6 -1/2 = (-5/6 -3/6) = -8/6 = -4/3。总和为：-2 + (-4/3) = -2 - 4/3 = -10/3 ≈ -3.33，不等于1。因此此步计算错误。"
+        }
+      ],
+      "final_answer_explanation": "学生最终答案为1，但正确结果应为-10/3（即-3又1/3）。学生可能误将某些负号忽略，或错误地进行了抵消运算，例如误认为-2019又5/6与-2018又2/3和4036又2/3能正向抵消得到接近1的结果，但实际上整数部分已为负，分数部分也为负，整体应为负数。因此最终答案错误。",
+      "question_id": "qu_4a29c3f6-1ef7-4a7e-9f3b-20a8a4f5a2de",
+      "question_type": "calculation",
+      "question_text": "计算：$\\left( -2019 \\frac{5}{6} \\right) + \\left( -2018 \\frac{2}{3} \\right) + 4036 \\frac{2}{3} + \\left( -1 \\frac{1}{2} \\right)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握带分数的拆分计算方法：将整数部分和分数部分分别相加，再合并结果"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    },
+    {
+      "overall_correct": false,
+      "final_answer_correct": false,
+      "steps_analysis": [
+        {
+          "step_index": 0,
+          "student_step": "\\left(-3\\right)+40+\\left(-32\\right)+\\left(-8\\right)",
+          "is_correct": true,
+          "explanation": "该步骤是题目给出的原始表达式，书写正确，符号和数字均无错误。"
+        },
+        {
+          "step_index": 1,
+          "student_step": "=-3",
+          "is_correct": false,
+          "explanation": "该步骤计算错误。学生直接得出结果为-3，但未正确执行加法运算。正确计算应为：(-3) + 40 = 37；37 + (-32) = 5；5 + (-8) = -3。虽然最终数值巧合地等于-3，但此步骤跳过了所有中间过程，且从表达式到结果的推导不完整、不符合数学规范，不能视为正确推理步骤。然而，由于答案恰好正确，需注意此处是‘结果碰巧正确但过程严重缺失’。但根据题意，这是唯一一个解题步骤，意味着学生没有展示任何有效计算过程，属于错误推理过程。"
+        }
+      ],
+      "final_answer_explanation": "尽管最终答案-3与正确结果一致，但由于学生的解题过程完全省略了必要的运算步骤，并且第二步‘=-3’不是基于正确展示的推理，因此不能认为解答正确。数学解答应体现完整的逻辑和运算过程，尤其是涉及多个有理数加减时。此处属于过程错误但结果碰巧正确的案例，整体仍判定为错误。",
+      "question_id": "qu_b2e8f2f7-59f3-46b2-8c91-9b6a6a3d7c2e",
+      "question_type": "calculation",
+      "question_text": "计算：$(-3) + 40 + (-32) + (-8)$",
+      "knowledge_points": [
+        {
+          "outline": "有理数的加法法则",
+          "detail": "掌握同号相加与异号相加的规则"
+        }
+      ],
+      "student_name": "小明",
+      "student_id": "student_1"
+    }
+  ],
+  "images": [
+    "/Users/xiaohei/work/project/aimath-helper/data/34f858e5_20251018_103342/images/image_20251018_103719_059.jpg"
+  ],
+  "created_at": "2025-10-18T10:33:42.915268",
+  "updated_at": "2025-10-18T18:50:53.271596",
+  "marked_images": [
+    "/Users/xiaohei/work/project/aimath-helper/data/34f858e5_20251018_103342/graded_images/image_20251018_103719_059_graded.jpg"
+  ],
+  "teaching_suggestions": "1. 重点突破：针对有理数的加法法则进行专项训练，通过典型例题反复练习。\n2. 错因讲解：用学生的典型错题做反例分析，让他们自己找错误并改正。"
+}

@@ -45,7 +45,8 @@ class MathHelperApp:
             return "⚠️ AI功能不可用，请检查API密钥配置", [], ""
 
         try:
-            # 初始化会话
+            # 创建新的会话（不修改历史session）
+            self.current_session = CompleteSession()
             session_path = self.current_session.initialize()
 
             # 使用AI提取知识点
@@ -295,33 +296,89 @@ class MathHelperApp:
                             question_areas = question_positions_map.get(image_path)
                             question_positions = None
                             if question_areas:
-                                # 转换为批改位置格式
-                                question_positions = []
-                                for area in question_areas:
-                                    answer_area = area.get("answer_area", {})
-                                    grading_position = {
-                                        "question_number": area.get(
-                                            "question_number", ""
-                                        ),
-                                        "question_type": area.get("question_type", ""),
-                                        "x": answer_area.get("x", 0)
-                                        + answer_area.get("width", 0)
-                                        + 20,
-                                        "y": answer_area.get("y", 0)
-                                        + answer_area.get("height", 0) // 2,
-                                        "width": 100,
-                                        "height": 100,
-                                        "confidence": area.get("confidence", 0.5),
-                                    }
-                                    question_positions.append(grading_position)
+                                # 读取图片获取尺寸（使用 PIL）
+                                from PIL import Image
 
-                            # 标记单张图片
+                                try:
+                                    with Image.open(image_path) as img:
+                                        image_width, image_height = img.size
+
+                                        # 使用已有的 question_areas 转换归一化坐标为批改位置格式
+                                        question_positions = ai_processor.get_question_positions_for_grading(
+                                            image_width=image_width,
+                                            image_height=image_height,
+                                            question_areas=question_areas,
+                                        )
+
+                                        print(
+                                            f"📍 转换批改位置: {len(question_positions)} 个题目"
+                                        )
+                                        for pos in question_positions:
+                                            print(
+                                                f"  题目 {pos['question_number']}: ({pos['x']}, {pos['y']}) - bbox_2d: {pos['bbox_2d']}"
+                                            )
+                                except Exception as e:
+                                    print(f"❌ 读取图片尺寸失败 {image_path}: {e}")
+
+                            # 过滤出当前图片对应学生的批改结果
+                            # 假设图片按顺序对应学生答案
+                            student_answer = None
+                            if i < len(student_answers):
+                                student_answer = student_answers[i]
+                                student_name = student_answer.get(
+                                    "student_name", f"学生{i+1}"
+                                )
+                                student_id = student_answer.get(
+                                    "student_id", f"student_{i+1}"
+                                )
+
+                                print(f"\n🔍 调试信息 - 图片 {i+1}:")
+                                print(f"  当前学生: {student_name} (ID: {student_id})")
+                                print(f"  所有批改结果数量: {len(grading_results)}")
+
+                                # 显示所有批改结果的学生ID
+                                all_student_ids = set(
+                                    r.get("student_id", "unknown")
+                                    for r in grading_results
+                                )
+                                print(f"  所有批改结果中的学生ID: {all_student_ids}")
+
+                                # 从所有批改结果中过滤出该学生的结果
+                                student_grading_results = [
+                                    result
+                                    for result in grading_results
+                                    if result.get("student_id") == student_id
+                                ]
+
+                                print(
+                                    f"  ✅ 过滤后该学生的批改结果数量: {len(student_grading_results)}"
+                                )
+
+                                if student_grading_results:
+                                    print(f"  该学生的题目:")
+                                    for r in student_grading_results:
+                                        print(
+                                            f"    - {r.get('question_type')} {r.get('question_id')}: {r.get('is_correct') or r.get('overall_correct')}"
+                                        )
+
+                                print(
+                                    f"\n🎨 为 {student_name} (ID: {student_id}) 绘制标记（{len(student_grading_results)} 个批改结果）"
+                                )
+                            else:
+                                # 如果没有对应的学生答案，使用所有批改结果（兜底）
+                                student_grading_results = grading_results
+                                print(
+                                    f"\n⚠️ 图片 {i+1} 没有对应的学生答案，使用所有批改结果"
+                                )
+
+                            # 标记单张图片（使用该学生的批改结果）
                             marked_path = image_marker.mark_image_with_grading_results(
                                 image_path,
-                                grading_results,
+                                student_grading_results,  # 使用过滤后的结果
                                 practice_data,
                                 output_path,
                                 question_positions,
+                                student_answer,  # 传递student_answer参数
                             )
                             marked_images.append(marked_path)
                     else:
@@ -331,6 +388,7 @@ class MathHelperApp:
                             grading_results,
                             practice_data,
                             question_positions_map if question_positions_map else None,
+                            student_answers,  # 传入学生答案列表
                         )
 
                     # 确保标记图片路径保存到session数据中
@@ -594,18 +652,21 @@ class MathHelperApp:
                 for i, question in enumerate(questions):
                     positions = question.get("positions", {})
                     if positions:
+                        # 获取归一化坐标
+                        answer_bbox_2d = positions.get("answer_bbox_2d", [0, 0, 0, 0])
+
+                        # 需要图片尺寸来转换坐标，这里暂时使用归一化坐标显示
+                        # 实际使用时需要根据图片尺寸转换
                         question_positions.append(
                             {
                                 "question_number": str(i + 1),
                                 "question_type": section.get("type", ""),
-                                "x": positions.get("grading_position", {}).get("x", 0),
-                                "y": positions.get("grading_position", {}).get("y", 0),
-                                "width": positions.get("grading_position", {}).get(
-                                    "width", 100
-                                ),
-                                "height": positions.get("grading_position", {}).get(
-                                    "height", 100
-                                ),
+                                "bbox_2d": positions.get("bbox_2d", [0, 0, 0, 0]),
+                                "answer_bbox_2d": answer_bbox_2d,
+                                "x": 0,  # 占位符，实际应从转换后的坐标获取
+                                "y": 0,  # 占位符，实际应从转换后的坐标获取
+                                "width": 100,
+                                "height": 100,
                                 "confidence": positions.get("confidence", 0.5),
                             }
                         )
@@ -780,18 +841,20 @@ class MathHelperApp:
                     "name", "未知学生"
                 )
                 report += f"**{student_name}:**\n"
-                report += "| 题目 | 位置坐标 | 答题区域 | 置信度 |\n"
+                report += "| 题目 | 归一化坐标 (x1,y1,x2,y2) | 答题区域归一化坐标 | 置信度 |\n"
                 report += "|------|----------|----------|--------|\n"
 
                 for pos in positions:
                     question_num = pos.get("question_number", "")
-                    x = pos.get("x", 0)
-                    y = pos.get("y", 0)
-                    width = pos.get("width", 0)
-                    height = pos.get("height", 0)
+                    bbox_2d = pos.get("bbox_2d", [0, 0, 0, 0])
+                    answer_bbox_2d = pos.get("answer_bbox_2d", [0, 0, 0, 0])
                     confidence = pos.get("confidence", 0)
 
-                    report += f"| {question_num} | ({x}, {y}) | {width}×{height} | {confidence:.2f} |\n"
+                    # 格式化归一化坐标显示（保留3位小数）
+                    bbox_str = f"({bbox_2d[0]:.3f},{bbox_2d[1]:.3f},{bbox_2d[2]:.3f},{bbox_2d[3]:.3f})"
+                    answer_bbox_str = f"({answer_bbox_2d[0]:.3f},{answer_bbox_2d[1]:.3f},{answer_bbox_2d[2]:.3f},{answer_bbox_2d[3]:.3f})"
+
+                    report += f"| {question_num} | {bbox_str} | {answer_bbox_str} | {confidence:.2f} |\n"
 
                 report += "\n"
 
@@ -1029,6 +1092,8 @@ class MathHelperApp:
                 student_answer = None
                 question_positions = None
 
+                # 找到对应的学生和批改结果
+                current_student_id = None
                 for student in student_answers:
                     student_id = student.get("student_id", "")
                     # 通过student_id找到对应的图片（简化处理，假设按顺序对应）
@@ -1037,15 +1102,30 @@ class MathHelperApp:
                     )
                     if student_index == i:
                         student_answer = student
-                        # 从sections中提取位置信息
+                        current_student_id = student_id
+                        # 从sections中提取位置信息，传入图片路径以获取尺寸
                         question_positions = self._extract_positions_from_sections(
-                            student
+                            student, image_path
                         )
                         break
 
                 if not question_positions:
                     # 如果没有位置信息，使用估算方法
                     question_positions = None
+
+                # 过滤出当前学生的批改结果
+                if current_student_id:
+                    student_grading_results = [
+                        result
+                        for result in grading_results
+                        if result.get("student_id") == current_student_id
+                    ]
+                    print(
+                        f"重新标记 - 学生 {current_student_id}: 过滤后 {len(student_grading_results)} 个批改结果"
+                    )
+                else:
+                    student_grading_results = grading_results
+                    print(f"⚠️ 未找到学生ID，使用所有批改结果")
 
                 # 创建graded_images目录
                 graded_dir = os.path.join(
@@ -1057,13 +1137,14 @@ class MathHelperApp:
                 base_name = os.path.splitext(os.path.basename(image_path))[0]
                 output_path = os.path.join(graded_dir, f"{base_name}_graded.jpg")
 
-                # 重新生成标记图片
+                # 重新生成标记图片（使用过滤后的批改结果）
                 marked_path = image_marker.mark_image_with_grading_results(
                     image_path,
-                    grading_results,
+                    student_grading_results,  # 使用过滤后的结果
                     practice_data,
                     output_path,
                     question_positions,
+                    student_answer,  # 传递student_answer参数
                 )
                 marked_images.append(marked_path)
 
@@ -1074,13 +1155,14 @@ class MathHelperApp:
         return marked_images
 
     def _extract_positions_from_sections(
-        self, student_answer: Dict[str, Any]
+        self, student_answer: Dict[str, Any], image_path: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         从sections中提取题目位置信息
 
         Args:
             student_answer: 学生答案数据
+            image_path: 图片路径（用于获取图片尺寸）
 
         Returns:
             题目位置信息列表
@@ -1088,20 +1170,58 @@ class MathHelperApp:
         question_positions = []
         sections = student_answer.get("sections", [])
 
+        # 获取图片尺寸（使用 PIL）
+        image_width, image_height = None, None
+        if image_path:
+            try:
+                from PIL import Image
+
+                with Image.open(image_path) as img:
+                    image_width, image_height = img.size
+            except Exception as e:
+                print(f"⚠️ 无法读取图片尺寸 {image_path}: {e}")
+
         for section in sections:
             questions = section.get("questions", [])
             for i, question in enumerate(questions):
                 positions = question.get("positions", {})
                 if positions:
-                    # 从原始位置信息计算批改位置
-                    answer_area = positions.get("answer_area", {})
-                    grading_x = answer_area.get("x", 0) + answer_area.get("width", 0) + 20
-                    grading_y = answer_area.get("y", 0) + answer_area.get("height", 0) // 2
-                    
+                    # 检查是否使用新的归一化坐标格式
+                    bbox = positions.get("bbox_2d")
+
+                    if bbox and image_width and image_height:
+                        # 新格式：使用归一化坐标
+                        x1 = bbox[0] * image_width
+                        y1 = bbox[1] * image_height
+                        x2 = bbox[2] * image_width
+                        y2 = bbox[3] * image_height
+
+                        # answer_width = x2 - x1
+                        # answer_height = y2 - y1
+
+                        # grading_x = int(x2 + 20)  # 答题区域右侧20像素
+                        # grading_y = int(y1 + answer_height / 2)  # 答题区域垂直居中
+
+                        grading_x = int((x2 + x1) / 2) + random.randint(0, 100)
+                        grading_y = int((y2 + y1) / 2)
+                    else:
+                        # 旧格式：使用像素坐标（向后兼容）
+                        answer_area = positions.get("answer_area", {})
+                        grading_x = (
+                            answer_area.get("x", 0) + answer_area.get("width", 0) + 20
+                        )
+                        grading_y = (
+                            answer_area.get("y", 0) + answer_area.get("height", 0) // 2
+                        )
+
                     question_positions.append(
                         {
                             "question_number": str(i + 1),
                             "question_type": section.get("type", ""),
+                            "bbox_2d": positions.get("bbox_2d", [0, 0, 0, 0]),
+                            "answer_bbox_2d": positions.get(
+                                "answer_bbox_2d", [0, 0, 0, 0]
+                            ),
                             "x": grading_x,
                             "y": grading_y,
                             "width": 100,

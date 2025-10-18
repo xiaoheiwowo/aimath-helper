@@ -19,7 +19,7 @@ class ImageGradingMarker:
     def __init__(self):
         self.checkmark_color = (0, 255, 0)  # 绿色对勾
         self.cross_color = (255, 0, 0)      # 红色错误
-        self.mark_size = 240                # 标记大小（4倍大：60 * 4 = 240）
+        self.mark_size = 120  # 标记大小（缩小到一半：240 / 2 = 120）
         self.font_size = 24                 # 字体大小
 
         # PNG文件路径
@@ -155,7 +155,6 @@ class ImageGradingMarker:
 
         # 创建临时图像用于叠加
         temp_image = pil_image.copy()
-
         # 叠加符号
         temp_image.paste(symbol_pil, (x_offset, y_offset), symbol_pil)
 
@@ -226,6 +225,7 @@ class ImageGradingMarker:
         practice_data: Dict[str, Any],
         output_path: Optional[str] = None,
         question_positions: Optional[List[Dict[str, Any]]] = None,
+        student_answer: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         在图片上标记批改结果
@@ -236,6 +236,7 @@ class ImageGradingMarker:
             practice_data: 练习数据
             output_path: 输出图片路径，如果为None则自动生成
             question_positions: 题目位置信息列表，如果提供则使用AI检测的位置
+            student_answer: 学生答案数据，用于按顺序匹配题目
 
         Returns:
             标记后的图片路径
@@ -257,61 +258,88 @@ class ImageGradingMarker:
                 image.shape, practice_data
             )
 
-        # 创建批改结果映射（按题目类型和序号）
-        grading_map = {}
-        for result in grading_results:
-            question_type = result.get("question_type", "")
-            question_id = result.get("question_id", "")
+        # 新逻辑：按顺序匹配批改结果和位置
+        # 如果提供了student_answer，使用student_answer中的题目顺序进行匹配
+        if student_answer:
+            # 从student_answer中提取题目的顺序列表
+            question_order = []
+            sections = student_answer.get("sections", [])
+            for section in sections:
+                questions = section.get("questions", [])
+                for question in questions:
+                    question_id = question.get("id", "")
+                    if question_id:
+                        question_order.append(question_id)
 
-            # 从practice_data中找到对应的题目序号
-            question_number = self._find_question_number_by_id(
-                practice_data, question_id, question_type
-            )
-            if question_number:
-                key = f"{question_type}_{question_number}"
-                grading_map[key] = result
+            # 创建批改结果映射（按question_id）
+            grading_map_by_id = {}
+            for result in grading_results:
+                question_id = result.get("question_id", "")
+                if question_id:
+                    grading_map_by_id[question_id] = result
 
-        # 为每道题添加标记
-        for pos in question_positions:
-            question_type = pos.get("question_type", "")
-            question_number = pos.get("question_number", "")
-            key = f"{question_type}_{question_number}"
-            grading_result = grading_map.get(key)
+            print(f"\n📝 题目顺序 (来自student_answer): {len(question_order)} 个题目")
+            print(f"📊 批改结果数量: {len(grading_results)} 个")
+            print(f"📍 位置信息数量: {len(question_positions)} 个")
 
-            if grading_result is None:
-                continue
+            # 按顺序匹配：如果位置数量与题目数量相同，直接按顺序匹配
+            if len(question_positions) == len(question_order):
+                print(f"✅ 数量匹配，按顺序进行匹配")
+                matched_pairs = []
+                for i, question_id in enumerate(question_order):
+                    if i < len(question_positions):
+                        grading_result = grading_map_by_id.get(question_id)
+                        if grading_result:
+                            matched_pairs.append(
+                                (question_positions[i], grading_result)
+                            )
+                            print(f"  匹配 {i+1}: 位置 {i} <-> 题目 {question_id}")
 
-            # 判断是否正确
-            is_correct = self._is_question_correct(grading_result)
+                # 绘制标记
+                marked_count = 0
+                for pos, grading_result in matched_pairs:
+                    # 判断是否正确
+                    is_correct = self._is_question_correct(grading_result)
 
-            # 绘制标记
-            x = pos["x"]
-            y = pos["y"]
+                    print(
+                        f"  绘制标记: 位置({pos.get('x')}, {pos.get('y')}) - {'✓正确' if is_correct else '✗错误'}"
+                    )
 
-            # 使用SVG符号进行标记
-            if is_correct:
-                # 加载绿色对勾符号
-                symbol = self.create_checkmark(self.mark_size)
+                    # 绘制标记
+                    x = pos["x"]
+                    y = pos["y"]
+
+                    # 使用PNG符号进行标记
+                    if is_correct:
+                        symbol = self.create_checkmark(self.mark_size)
+                    else:
+                        symbol = self.create_cross(self.mark_size)
+
+                    # 将符号叠加到图片上
+                    pil_image = self._overlay_symbol(pil_image, symbol, x, y)
+                    draw = ImageDraw.Draw(pil_image)
+
+                    # 绘制坐标信息（用于调试）
+                    coord_text = f"({x},{y})"
+                    text_y = y + self.mark_size // 2 + 5
+                    draw.text((x, text_y), coord_text, fill=(0, 0, 255))
+
+                    marked_count += 1
+
+                print(
+                    f"\n✅ 总共绘制了 {marked_count} 个标记（共 {len(question_positions)} 个位置）"
+                )
             else:
-                # 加载红色叉号符号
-                symbol = self.create_cross(self.mark_size)
-
-            # 将符号叠加到图片上
-            pil_image = self._overlay_symbol(pil_image, symbol, x, y)
-            draw = ImageDraw.Draw(pil_image)
-
-            # 添加题目编号
-            try:
-                font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 24)  # 增大字体
-            except:
-                font = ImageFont.load_default()
-
-            question_num = pos["question_number"]
-            draw.text(
-                (x + self.mark_size // 2 + 20, y - 12),  # 调整位置
-                f"第{question_num}题",
-                fill=(0, 0, 0),
-                font=font
+                print(f"⚠️ 数量不匹配，回退到旧的匹配逻辑")
+                # 回退到旧的匹配逻辑（基于question_number）
+                marked_count = self._mark_with_legacy_logic(
+                    pil_image, draw, grading_results, practice_data, question_positions
+                )
+        else:
+            print(f"⚠️ 未提供student_answer，使用旧的匹配逻辑")
+            # 回退到旧的匹配逻辑
+            marked_count = self._mark_with_legacy_logic(
+                pil_image, draw, grading_results, practice_data, question_positions
             )
 
         # 保存标记后的图片
@@ -338,6 +366,105 @@ class ImageGradingMarker:
         cv2.imwrite(output_path, marked_image)
 
         return output_path
+
+    def _mark_with_legacy_logic(
+        self,
+        pil_image: Image.Image,
+        draw: ImageDraw.Draw,
+        grading_results: List[Dict[str, Any]],
+        practice_data: Dict[str, Any],
+        question_positions: List[Dict[str, Any]],
+    ) -> int:
+        """
+        使用旧的匹配逻辑进行标记（基于question_type和question_number）
+
+        Returns:
+            标记数量
+        """
+        # 创建批改结果映射（按学生ID + 题目类型 + 序号）
+        grading_map = {}
+        for result in grading_results:
+            question_type = result.get("question_type", "")
+            question_id = result.get("question_id", "")
+            student_id = result.get("student_id", "")
+
+            # 从practice_data中找到对应的题目序号
+            question_number = self._find_question_number_by_id(
+                practice_data, question_id, question_type
+            )
+            if question_number:
+                # 使用学生ID + 题目类型 + 序号作为唯一键
+                key = f"{student_id}_{question_type}_{question_number}"
+                grading_map[key] = result
+                print(f"  批改结果映射: {key} -> {question_id}")
+
+        print(f"\n批改结果映射表: {list(grading_map.keys())}")
+        print(f"题目位置数量: {len(question_positions)}")
+
+        # 检测学生ID（从批改结果中获取，理论上所有结果应该是同一个学生）
+        detected_student_ids = set(
+            result.get("student_id", "") for result in grading_results
+        )
+        if len(detected_student_ids) == 1:
+            current_student_id = detected_student_ids.pop()
+            print(f"当前学生ID: {current_student_id}")
+        elif len(detected_student_ids) > 1:
+            print(
+                f"⚠️ 警告: 检测到多个学生ID: {detected_student_ids}，可能传入了错误的批改结果"
+            )
+            current_student_id = list(detected_student_ids)[0]
+        else:
+            current_student_id = ""
+            print("⚠️ 警告: 未检测到学生ID")
+
+        # 为每道题添加标记
+        marked_count = 0
+        for pos in question_positions:
+            question_type = pos.get("question_type", "")
+            question_number = pos.get("question_number", "")
+            # 构建与 grading_map 一致的键
+            key = f"{current_student_id}_{question_type}_{question_number}"
+            grading_result = grading_map.get(key)
+
+            print(f"  处理位置: {key} (x={pos.get('x')}, y={pos.get('y')})")
+
+            if grading_result is None:
+                print(f"    ⚠️ 跳过 {key}: 找不到对应的批改结果")
+                continue
+
+            # 判断是否正确
+            is_correct = self._is_question_correct(grading_result)
+
+            print(f"    ✓ 绘制标记: {'✓正确' if is_correct else '✗错误'}")
+
+            # 绘制标记
+            x = pos["x"]
+            y = pos["y"]
+
+            # 使用PNG符号进行标记
+            if is_correct:
+                # 加载绿色对勾符号
+                symbol = self.create_checkmark(self.mark_size)
+            else:
+                # 加载红色叉号符号
+                symbol = self.create_cross(self.mark_size)
+
+            # 将符号叠加到图片上
+            pil_image = self._overlay_symbol(pil_image, symbol, x, y)
+            draw = ImageDraw.Draw(pil_image)
+
+            # 绘制坐标信息（用于调试）
+            coord_text = f"({x},{y})"
+            text_y = y + self.mark_size // 2 + 5
+            draw.text((x, text_y), coord_text, fill=(0, 0, 255))
+
+            marked_count += 1
+
+        print(
+            f"\n✅ 总共绘制了 {marked_count} 个标记（共 {len(question_positions)} 个位置）"
+        )
+
+        return marked_count
 
     def _is_question_correct(self, grading_result: Dict[str, Any]) -> bool:
         """判断题目是否正确"""
@@ -371,15 +498,17 @@ class ImageGradingMarker:
         grading_results: List[Dict[str, Any]],
         practice_data: Dict[str, Any],
         question_positions_map: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+        student_answers: Optional[List[Dict[str, Any]]] = None,
     ) -> List[str]:
         """
         批量标记多张图片
 
         Args:
             image_paths: 图片路径列表
-            grading_results: 批改结果列表
+            grading_results: 批改结果列表（所有学生）
             practice_data: 练习数据
             question_positions_map: 每张图片的题目位置信息映射，键为图片路径
+            student_answers: 学生答案列表，用于按学生过滤批改结果
 
         Returns:
             标记后的图片路径列表
@@ -393,9 +522,38 @@ class ImageGradingMarker:
                 if question_positions_map and image_path in question_positions_map:
                     question_positions = question_positions_map[image_path]
 
+                # 过滤出当前图片对应学生的批改结果
+                student_answer = None
+                if student_answers and i < len(student_answers):
+                    student_answer = student_answers[i]
+                    student_id = student_answer.get("student_id", f"student_{i+1}")
+                    student_name = student_answer.get("name", f"学生{i+1}")
+
+                    # 从所有批改结果中过滤出该学生的结果
+                    student_grading_results = [
+                        result
+                        for result in grading_results
+                        if result.get("student_id") == student_id
+                    ]
+
+                    print(
+                        f"🎨 批量标记 - 为 {student_name} 绘制标记（{len(student_grading_results)} 个批改结果）"
+                    )
+                else:
+                    # 如果没有提供学生答案，使用所有批改结果（兜底）
+                    student_grading_results = grading_results
+                    print(
+                        f"⚠️ 批量标记 - 图片 {i+1} 没有对应的学生答案，使用所有批改结果"
+                    )
+
                 # 为每张图片生成标记
                 output_path = self.mark_image_with_grading_results(
-                    image_path, grading_results, practice_data, None, question_positions
+                    image_path,
+                    student_grading_results,
+                    practice_data,
+                    None,
+                    question_positions,
+                    student_answer,  # 传递student_answer参数
                 )
                 marked_images.append(output_path)
             except Exception as e:

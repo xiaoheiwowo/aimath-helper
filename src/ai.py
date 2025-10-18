@@ -667,6 +667,68 @@ OCR文本：
             # 构建prompt
             prompt = self._build_detection_prompt(question_info)
 
+            # 定义 JSON Schema
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "question_detection",
+                    "strict": True,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "question_areas": {
+                                "type": "array",
+                                "description": "检测到的题目区域列表",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "question_number": {
+                                            "type": "string",
+                                            "description": "题目编号",
+                                        },
+                                        "question_type": {
+                                            "type": "string",
+                                            "enum": ["choice", "calculation"],
+                                            "description": "题目类型",
+                                        },
+                                        "bbox_2d": {
+                                            "type": "array",
+                                            "description": "题目区域归一化坐标 [x1, y1, x2, y2]",
+                                            "items": {"type": "number"},
+                                            "minItems": 4,
+                                            "maxItems": 4,
+                                        },
+                                        "answer_bbox_2d": {
+                                            "type": "array",
+                                            "description": "答案区域归一化坐标 [x1, y1, x2, y2]",
+                                            "items": {"type": "number"},
+                                            "minItems": 4,
+                                            "maxItems": 4,
+                                        },
+                                        "confidence": {
+                                            "type": "number",
+                                            "description": "识别置信度 (0-1)",
+                                            "minimum": 0,
+                                            "maximum": 1,
+                                        },
+                                    },
+                                    "required": [
+                                        "question_number",
+                                        "question_type",
+                                        "bbox_2d",
+                                        "answer_bbox_2d",
+                                        "confidence",
+                                    ],
+                                    "additionalProperties": False,
+                                },
+                            },
+                        },
+                        "required": ["image_width", "image_height", "question_areas"],
+                        "additionalProperties": False,
+                    },
+                },
+            }
+
             # 调用qwen-vl-plus模型
             messages = [
                 {
@@ -686,57 +748,115 @@ OCR文本：
                 }
             ]
 
-            response = self.ai_client.chat.completions.create(
-                model="qwen-vl-plus",
-                messages=messages,
-                max_tokens=2000,
-                temperature=0.1,
-            )
+            # 尝试使用结构化输出
+            try:
+                response = self.ai_client.chat.completions.create(
+                    model="qwen-vl-plus",
+                    messages=messages,
+                    response_format=response_format,
+                    max_tokens=2000,
+                    temperature=0.1,
+                )
+                self.logger.info("使用结构化输出 (JSON Schema) 模式")
+            except Exception as schema_error:
+                # 如果不支持 JSON Schema，回退到普通模式
+                self.logger.warning(
+                    f"JSON Schema 模式不支持，回退到普通模式: {schema_error}"
+                )
+                response = self.ai_client.chat.completions.create(
+                    model="qwen-vl-plus",
+                    messages=messages,
+                    max_tokens=2000,
+                    temperature=0.1,
+                )
 
             response_text = response.choices[0].message.content
+            self.logger.info(f"AI模型返回结果长度: {len(response_text)} 字符")
+            self.logger.debug(f"AI模型返回内容: {response_text[:500]}...")
 
             # 解析AI返回的结果
             question_areas = self._parse_detection_result(response_text, practice_data)
 
             self.logger.info(f"检测到 {len(question_areas)} 个题目区域")
+            if question_areas:
+                for i, area in enumerate(question_areas):
+                    self.logger.info(
+                        f"题目 {i+1}: {area.get('question_number', 'N/A')} - 类型: {area.get('question_type', 'N/A')}"
+                    )
+            else:
+                self.logger.warning("未检测到任何题目区域")
+
             return question_areas
 
         except Exception as e:
             self.logger.error(f"题目区域检测失败: {e}")
+            import traceback
+
+            self.logger.error(traceback.format_exc())
             return []
 
     def get_question_positions_for_grading(
-        self, image_path: str, practice_data: Dict[str, Any]
+        self,
+        image_width: int,
+        image_height: int,
+        question_areas: Optional[List[Dict[str, Any]]] = None,
+        image_path: Optional[str] = None,
+        practice_data: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         获取用于批改标记的题目位置信息
 
         Args:
-            image_path: 图片路径
-            practice_data: 练习数据
+            image_width: 图片宽度（像素）
+            image_height: 图片高度（像素）
+            question_areas: 已检测的题目区域列表（优先使用）
+            image_path: 图片路径（当question_areas为None时使用）
+            practice_data: 练习数据（当question_areas为None时使用）
 
         Returns:
             用于批改标记的位置信息列表
         """
-        question_areas = self.detect_question_areas(image_path, practice_data)
+        # 如果没有提供question_areas，则尝试检测
+        if question_areas is None:
+            if image_path and practice_data:
+                question_areas = self.detect_question_areas(image_path, practice_data)
+            else:
+                self.logger.warning(
+                    "未提供question_areas，且缺少image_path或practice_data"
+                )
+                return []
+
+        if not question_areas:
+            self.logger.warning("question_areas为空，无法生成批改位置")
+            return []
 
         # 转换为批改标记需要的格式
         grading_positions = []
 
         for area in question_areas:
-            answer_area = area.get("answer_area", {})
+            bbox_2d = area.get("bbox_2d", [0, 0, 0, 0])
+            answer_bbox_2d = area.get("answer_bbox_2d", [0, 0, 0, 0])
 
-            # 计算标记位置（在答题区域的右侧）
-            x = (
-                answer_area.get("x", 0) + answer_area.get("width", 0) + 20
-            )  # 答题区域右侧20像素
-            y = (
-                answer_area.get("y", 0) + answer_area.get("height", 0) // 2
-            )  # 答题区域垂直居中
+            # 将题目区域归一化坐标转换为像素坐标
+            question_x1 = bbox_2d[0] * image_width
+            question_y1 = bbox_2d[1] * image_height
+            question_x2 = bbox_2d[2] * image_width
+            question_y2 = bbox_2d[3] * image_height
+
+            # 标记位置：放在题目区域的中心
+            # 这样标记会直接显示在题目区域的正中央
+            # x = (question_x1 + question_x2) / 2  # 题目区域水平中心
+            # y = (question_y1 + question_y2) / 2  # 题目区域垂直中心
+            x = question_x1
+            y = question_y2
+
+            print("mark position", x, y)
 
             grading_position = {
                 "question_number": area.get("question_number", ""),
                 "question_type": area.get("question_type", ""),
+                "bbox_2d": bbox_2d,
+                "answer_bbox_2d": answer_bbox_2d,
                 "x": int(x),
                 "y": int(y),
                 "width": 100,  # 标记区域宽度
@@ -756,8 +876,11 @@ OCR文本：
         """
         将题目位置信息保存到sections[].questions[].positions中
 
+        新逻辑：按照 student_answers 中题目的整体顺序进行匹配
+        只要 question_areas 的数量等于题目总数，就按顺序一一对应
+
         Args:
-            question_areas: AI检测到的题目区域信息
+            question_areas: AI检测到的题目区域信息（不包含question_id，但按顺序排列）
             student_answers: 学生答案数据
 
         Returns:
@@ -767,47 +890,88 @@ OCR文本：
         for student_answer in student_answers:
             sections = student_answer.get("sections", [])
 
-            # 按题目类型和序号组织位置信息
-            positions_by_type_and_number = {}
-            for area in question_areas:
-                question_type = area.get("question_type", "")
-                question_number = area.get("question_number", "")
+            # 计算总题目数
+            total_questions = sum(
+                len(section.get("questions", [])) for section in sections
+            )
 
-                if question_type not in positions_by_type_and_number:
-                    positions_by_type_and_number[question_type] = {}
+            print(
+                f"📍 保存位置信息: 题目总数 {total_questions}, 位置信息数量 {len(question_areas)}"
+            )
 
-                positions_by_type_and_number[question_type][question_number] = {
-                    "area": area.get("area", {}),
-                    "answer_area": area.get("answer_area", {}),
-                    "confidence": area.get("confidence", 0.5),
-                }
+            # 如果位置信息数量与题目数量匹配，按顺序对应
+            if len(question_areas) == total_questions:
+                print(f"✅ 数量匹配，按顺序保存位置信息")
 
-            # 将位置信息添加到对应的题目中
-            for section in sections:
-                section_type = section.get("type", "")
-                questions = section.get("questions", [])
+                # 按顺序遍历所有题目
+                position_index = 0
+                for section in sections:
+                    questions = section.get("questions", [])
+                    for question in questions:
+                        if position_index < len(question_areas):
+                            area = question_areas[position_index]
+                            question["positions"] = {
+                                "bbox_2d": area.get("bbox_2d", [0, 0, 0, 0]),
+                                "answer_bbox_2d": area.get(
+                                    "answer_bbox_2d", [0, 0, 0, 0]
+                                ),
+                                "confidence": area.get("confidence", 0.5),
+                            }
+                            print(f"  题目 {position_index + 1}: 保存位置信息")
+                            position_index += 1
+            else:
+                # 如果数量不匹配，回退到旧的匹配逻辑（按题目类型和序号）
+                print(f"⚠️ 数量不匹配，使用旧的匹配逻辑（按题目类型和序号）")
 
-                if section_type in positions_by_type_and_number:
-                    type_positions = positions_by_type_and_number[section_type]
+                # 按题目类型和序号组织位置信息
+                positions_by_type_and_number = {}
+                for area in question_areas:
+                    question_type = area.get("question_type", "")
+                    question_number = area.get("question_number", "")
 
-                    for i, question in enumerate(questions):
-                        question_number = str(i + 1)  # 题目序号从1开始
+                    if question_type not in positions_by_type_and_number:
+                        positions_by_type_and_number[question_type] = {}
 
-                        if question_number in type_positions:
-                            question["positions"] = type_positions[question_number]
+                    positions_by_type_and_number[question_type][question_number] = {
+                        "bbox_2d": area.get("bbox_2d", [0, 0, 0, 0]),
+                        "answer_bbox_2d": area.get("answer_bbox_2d", [0, 0, 0, 0]),
+                        "confidence": area.get("confidence", 0.5),
+                    }
+
+                # 将位置信息添加到对应的题目中
+                for section in sections:
+                    section_type = section.get("type", "")
+                    questions = section.get("questions", [])
+
+                    if section_type in positions_by_type_and_number:
+                        type_positions = positions_by_type_and_number[section_type]
+
+                        for i, question in enumerate(questions):
+                            question_number = str(i + 1)  # 题目序号从1开始
+
+                            if question_number in type_positions:
+                                question["positions"] = type_positions[question_number]
 
         return student_answers
 
-    def _build_question_info(self, practice_data: Dict[str, Any]) -> str:
-        """构建题目信息字符串供AI参考"""
-        question_info = []
+    def _build_question_info(self, practice_data: Dict[str, Any]) -> Dict[str, Any]:
+        """构建题目信息字典供AI参考"""
+        sections_info = []
+        total_questions = 0
 
         for section in practice_data.get("sections", []):
             section_name = section.get("name", "")
             section_type = section.get("type", "")
             questions = section.get("questions", [])
+            question_count = len(questions)
+            total_questions += question_count
 
-            question_info.append(f"## {section_name} ({section_type})")
+            section_data = {
+                "name": section_name,
+                "type": section_type,
+                "count": question_count,
+                "questions": [],
+            }
 
             for i, question in enumerate(questions, 1):
                 question_id = question.get("id", "")
@@ -820,38 +984,42 @@ OCR文本：
                     else question_text
                 )
 
-                question_info.append(f"{i}. 题目ID: {question_id}")
-                question_info.append(f"   内容: {short_question}")
-                question_info.append("")
+                section_data["questions"].append(
+                    {"number": i, "id": question_id, "preview": short_question}
+                )
 
-        return "\n".join(question_info)
+            sections_info.append(section_data)
 
-    def _build_detection_prompt(self, question_info: str) -> str:
+        return {"total_questions": total_questions, "sections": sections_info}
+
+    def _build_detection_prompt(self, question_info: Dict[str, Any]) -> str:
         """构建检测prompt"""
-        return """你是一位专业的数学老师，需要识别学生练习试卷中的题目区域。
+        # 构建题目概述
+        total_questions = question_info.get("total_questions", 0)
+        sections = question_info.get("sections", [])
 
-请仔细分析这张学生答题图片，识别以下内容：
+        # 构建详细的题目信息
+        sections_text = []
+        for section in sections:
+            section_name = section.get("name", "")
+            section_type = section.get("type", "")
+            question_count = section.get("count", 0)
+            sections_text.append(
+                f"- {section_name}：{question_count} 道题（类型：{section_type}）"
+            )
 
-1. **题目编号识别**：
-   - 找到所有题目编号（如"1."、"2."、"一、"、"二、"等）
-   - 识别题目编号的具体位置坐标
+        sections_summary = "\n".join(sections_text)
 
-2. **答题区域识别**：
-   - 找到每道题对应的学生答题区域
-   - 识别答题区域的位置坐标
-   - 注意答题区域可能包括：
-     * 选择题的选项标记（A、B、C、D等）
-     * 计算题的解题过程和答案
-     * 填空题的答案填写位置
+        print("sections_summary", sections_summary, "total_questions", total_questions)
 
-3. **区域边界确定**：
-   - 为每道题确定一个矩形区域，包含题目和答题内容
-   - 区域应该足够大以包含完整的题目和答题内容
+        return f"""获取图片中所有题目区域的位置坐标，共有 {total_questions} 道题   
+试卷结构：
+{sections_summary}
 
-4. **题目类型识别**：
-   - 识别题目类型：选择题（choice）或计算题（calculation）
-   - 选择题通常有A、B、C、D选项
-   - 计算题通常有解题过程和最终答案
+内容：
+1. 题目内容位置信息：识别每个题目区域的具体位置坐标
+2. 学生答题位置信息：识别在每个题目区域中学生填写答案的位置信息。
+3. 识别题目类型：选择题（choice）或计算题（calculation）
 
 请按照以下JSON格式返回结果：
 {{
@@ -859,28 +1027,20 @@ OCR文本：
     {{
       "question_number": "题目编号（如1、2、一、二等）",
       "question_type": "题目类型（choice/calculation）",
-      "area": {{
-        "x": "左上角x坐标",
-        "y": "左上角y坐标", 
-        "width": "区域宽度",
-        "height": "区域高度"
-      }},
-      "answer_area": {{
-        "x": "答题区域左上角x坐标",
-        "y": "答题区域左上角y坐标",
-        "width": "答题区域宽度", 
-        "height": "答题区域高度"
-      }},
+      "bbox_2d": [x1, y1, x2, y2],
+      "answer_bbox_2d": [x1, y1, x2, y2],
       "confidence": "识别置信度（0-1）"
     }}
   ]
 }}
 
 要求：
-1. 坐标使用像素单位，以图片左上角为原点(0,0)
-2. 确保识别到的题目编号按顺序排列
-3. 如果无法确定某个题目的位置，请设置confidence为较低值
-4. 答题区域应该包含学生实际填写答案的地方
+1. 坐标使用归一化坐标（0-1范围），相对于图片宽度和高度
+2. **必须识别出所有 {total_questions} 道题目，question_areas 数组的长度应该等于 {total_questions}**
+   - 为每道题确定一个矩形区域，包含题目和答题内容，边界一定不要过大，可以适当缩小。
+   - 题目的区域不可重叠。
+3. 确保识别结果按顺序排列
+4. 如果某个题目位置不太确定，仍然要尽量给出估计位置，但将confidence设置为较低值（如0.3-0.5）
 5. 只返回JSON格式，不要添加其他解释文字
 
 请开始分析图片："""
@@ -890,54 +1050,137 @@ OCR文本：
     ) -> List[Dict[str, Any]]:
         """解析AI返回的检测结果"""
         try:
+            self.logger.info(f"开始解析AI返回结果，原始长度: {len(response_text)}")
+
+            # 计算期望的题目数量
+            expected_count = sum(
+                len(section.get("questions", []))
+                for section in practice_data.get("sections", [])
+            )
+            self.logger.info(f"期望识别 {expected_count} 道题目")
+
             # 清理响应文本
             clean_text = response_text.strip()
             if clean_text.startswith("```json"):
                 clean_text = clean_text[7:]
+                self.logger.info("移除了开头的```json标记")
             if clean_text.endswith("```"):
                 clean_text = clean_text[:-3]
+                self.logger.info("移除了结尾的```标记")
             clean_text = clean_text.strip()
 
-            # 解析JSON
+            self.logger.info(f"清理后的文本长度: {len(clean_text)}")
+            self.logger.debug(f"清理后的文本内容: {clean_text[:200]}...")
+
+            # 解析JSON（如果使用了 JSON Schema，应该已经是严格格式）
             result = json.loads(clean_text)
+            image_width = result.get("image_width", 1)
+            image_height = result.get("image_height", 1)
             question_areas = result.get("question_areas", [])
+            self.logger.info(f"图片尺寸: {image_width}x{image_height}")
+            self.logger.info(f"从JSON中提取到 {len(question_areas)} 个题目区域")
 
             # 验证和清理结果
             validated_areas = []
-            for area in question_areas:
+            for i, area in enumerate(question_areas):
+                self.logger.debug(f"验证题目区域 {i+1}: {area}")
                 if self._validate_question_area(area):
                     validated_areas.append(area)
+                    self.logger.info(f"题目区域 {i+1} 验证通过")
+                else:
+                    self.logger.warning(f"题目区域 {i+1} 验证失败，跳过")
+
+            self.logger.info(f"最终验证通过 {len(validated_areas)} 个题目区域")
+
+            # 检查识别数量是否正确
+            if len(validated_areas) != expected_count:
+                self.logger.warning(
+                    f"⚠️ 识别到的题目数量({len(validated_areas)})与期望数量({expected_count})不一致！"
+                )
+                self.logger.warning(
+                    f"   期望: {expected_count} 道题，实际识别: {len(validated_areas)} 道题"
+                )
+            else:
+                self.logger.info(
+                    f"✅ 题目数量匹配：成功识别所有 {expected_count} 道题！"
+                )
 
             return validated_areas
 
         except json.JSONDecodeError as e:
             self.logger.error(f"解析检测结果JSON失败: {e}")
+            self.logger.error(
+                f"清理后的文本: {clean_text[:500] if 'clean_text' in locals() else 'N/A'}..."
+            )
+            self.logger.error(f"原始响应文本: {response_text[:500]}...")
             return []
         except Exception as e:
             self.logger.error(f"解析检测结果失败: {e}")
+            import traceback
+
+            self.logger.error(traceback.format_exc())
             return []
 
     def _validate_question_area(self, area: Dict[str, Any]) -> bool:
         """验证题目区域数据的有效性"""
-        required_fields = ["question_number", "question_id", "area", "answer_area"]
+        required_fields = ["question_number", "bbox_2d", "answer_bbox_2d"]
 
+        # 检查必需字段
         for field in required_fields:
             if field not in area:
+                self.logger.warning(f"缺少必需字段: {field}")
                 return False
 
-        # 验证坐标数据
-        area_coords = area.get("area", {})
-        answer_coords = area.get("answer_area", {})
+        # 验证bbox_2d数据（归一化坐标）
+        bbox_2d = area.get("bbox_2d", [])
+        answer_bbox_2d = area.get("answer_bbox_2d", [])
 
-        coord_fields = ["x", "y", "width", "height"]
-        for field in coord_fields:
-            if field not in area_coords or field not in answer_coords:
+        # 检查bbox是否为长度为4的列表
+        if not isinstance(bbox_2d, list) or len(bbox_2d) != 4:
+            self.logger.warning(f"bbox_2d格式错误，应为长度为4的列表: {bbox_2d}")
+            return False
+
+        if not isinstance(answer_bbox_2d, list) or len(answer_bbox_2d) != 4:
+            self.logger.warning(
+                f"answer_bbox_2d格式错误，应为长度为4的列表: {answer_bbox_2d}"
+            )
+            return False
+
+        # 验证归一化坐标范围（0-1）
+        try:
+            for i, val in enumerate(bbox_2d):
+                coord_val = float(val)
+                if coord_val < 0 or coord_val > 1:
+                    self.logger.warning(f"bbox_2d[{i}]={coord_val} 超出归一化范围[0,1]")
+                    return False
+
+            for i, val in enumerate(answer_bbox_2d):
+                coord_val = float(val)
+                if coord_val < 0 or coord_val > 1:
+                    self.logger.warning(
+                        f"answer_bbox_2d[{i}]={coord_val} 超出归一化范围[0,1]"
+                    )
+                    return False
+
+            # 验证坐标逻辑正确性（x1 < x2, y1 < y2）
+            if bbox_2d[0] >= bbox_2d[2] or bbox_2d[1] >= bbox_2d[3]:
+                self.logger.warning(
+                    f"bbox_2d坐标逻辑错误: x1={bbox_2d[0]} >= x2={bbox_2d[2]} 或 y1={bbox_2d[1]} >= y2={bbox_2d[3]}"
+                )
                 return False
 
-            try:
-                int(area_coords[field])
-                int(answer_coords[field])
-            except (ValueError, TypeError):
+            if (
+                answer_bbox_2d[0] >= answer_bbox_2d[2]
+                or answer_bbox_2d[1] >= answer_bbox_2d[3]
+            ):
+                self.logger.warning(
+                    f"answer_bbox_2d坐标逻辑错误: x1={answer_bbox_2d[0]} >= x2={answer_bbox_2d[2]} 或 y1={answer_bbox_2d[1]} >= y2={answer_bbox_2d[3]}"
+                )
                 return False
 
+        except (ValueError, TypeError) as e:
+            self.logger.warning(f"坐标值转换失败: {e}")
+            return False
+
+        self.logger.debug(f"题目区域验证通过: {area.get('question_number', 'N/A')}")
         return True
