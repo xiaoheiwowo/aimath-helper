@@ -886,8 +886,8 @@ class MathHelperApp:
             result_text = "已加载会话数据\n\n"
             result_text += f"出题要求: {data.get('prompt', '')}\n"
             result_text += f"知识点: {', '.join(data.get('knowledge_points', []))}\n"
-            result_text += f"学生答案数量: {len(data.get('student_answers', []))}\n"
-            result_text += f"批改结果数量: {len(data.get('grading_results', []))}\n"
+            # result_text += f"学生答案数量: {len(data.get('student_answers', []))}\n"
+            # result_text += f"批改结果数量: {len(data.get('grading_results', []))}\n"
 
             # 生成Markdown
             practice_data = data.get("practice_data", {})
