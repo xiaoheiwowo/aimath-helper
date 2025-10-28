@@ -830,34 +830,6 @@ class MathHelperApp:
         for i, question in enumerate(all_questions, 1):
             report += f"**题目{i}:** {question['text']}\n"
         report += "\n"
-
-        # 添加题目位置信息
-        if student_question_positions:
-            report += "### 📍 题目位置信息\n\n"
-            report += "以下是通过AI检测到的题目在图片中的位置信息：\n\n"
-
-            for student_id, positions in student_question_positions.items():
-                student_name = student_grading_results.get(student_id, {}).get(
-                    "name", "未知学生"
-                )
-                report += f"**{student_name}:**\n"
-                report += "| 题目 | 归一化坐标 (x1,y1,x2,y2) | 答题区域归一化坐标 | 置信度 |\n"
-                report += "|------|----------|----------|--------|\n"
-
-                for pos in positions:
-                    question_num = pos.get("question_number", "")
-                    bbox_2d = pos.get("bbox_2d", [0, 0, 0, 0])
-                    answer_bbox_2d = pos.get("answer_bbox_2d", [0, 0, 0, 0])
-                    confidence = pos.get("confidence", 0)
-
-                    # 格式化归一化坐标显示（保留3位小数）
-                    bbox_str = f"({bbox_2d[0]:.3f},{bbox_2d[1]:.3f},{bbox_2d[2]:.3f},{bbox_2d[3]:.3f})"
-                    answer_bbox_str = f"({answer_bbox_2d[0]:.3f},{answer_bbox_2d[1]:.3f},{answer_bbox_2d[2]:.3f},{answer_bbox_2d[3]:.3f})"
-
-                    report += f"| {question_num} | {bbox_str} | {answer_bbox_str} | {confidence:.2f} |\n"
-
-                report += "\n"
-
         return report
 
     def _is_question_correct(self, result: Dict) -> bool:
@@ -1178,6 +1150,7 @@ class MathHelperApp:
 
                 with Image.open(image_path) as img:
                     image_width, image_height = img.size
+                    original_size = (image_width, image_height)
             except Exception as e:
                 print(f"⚠️ 无法读取图片尺寸 {image_path}: {e}")
 
@@ -1186,33 +1159,45 @@ class MathHelperApp:
             for i, question in enumerate(questions):
                 positions = question.get("positions", {})
                 if positions:
-                    # 检查是否使用新的归一化坐标格式
+                    # 检查坐标格式
                     bbox = positions.get("bbox_2d")
 
-                    if bbox and image_width and image_height:
-                        # 新格式：使用归一化坐标
-                        x1 = bbox[0] * image_width
-                        y1 = bbox[1] * image_height
-                        x2 = bbox[2] * image_width
-                        y2 = bbox[3] * image_height
+                    # 检查是否包含 original_size 和 resized_size（新格式：像素坐标）
+                    # original_size = positions.get("original_size")
+                    resized_size = (1000, 1000)
 
-                        # answer_width = x2 - x1
-                        # answer_height = y2 - y1
+                    # 新格式：像素坐标（基于 resize 后的图片）
+                    # 需要转换到原始图片尺寸
+                    print(f"📍 检测到新格式坐标（像素坐标）: {bbox}")
+                    print(
+                        f"   Original size: {original_size}, Resized size: {resized_size}"
+                    )
 
-                        # grading_x = int(x2 + 20)  # 答题区域右侧20像素
-                        # grading_y = int(y1 + answer_height / 2)  # 答题区域垂直居中
+                    # 如果当前图片尺寸与 original_size 一致，需要转换坐标
+                    if image_width and image_height:
+                        if (image_width, image_height) == tuple(original_size):
+                            # 坐标需要从 resized 转换到 original
+                            scale_x = original_size[0] / resized_size[0]
+                            scale_y = original_size[1] / resized_size[1]
 
-                        grading_x = int((x2 + x1) / 2) + random.randint(0, 100)
-                        grading_y = int((y2 + y1) / 2)
+                            x1 = int(bbox[0] * scale_x)
+                            y1 = int(bbox[1] * scale_y)
+                            x2 = int(bbox[2] * scale_x)
+                            y2 = int(bbox[3] * scale_y)
+
+                            print(f"   转换坐标: {bbox} -> [{x1}, {y1}, {x2}, {y2}]")
+                        else:
+                            # 尺寸不匹配，直接使用原坐标（可能需要其他处理）
+                            x1, y1, x2, y2 = bbox
+                            print(
+                                f"⚠️  图片尺寸不匹配: 当前({image_width}x{image_height}) vs 原始({original_size})"
+                            )
                     else:
-                        # 旧格式：使用像素坐标（向后兼容）
-                        answer_area = positions.get("answer_area", {})
-                        grading_x = (
-                            answer_area.get("x", 0) + answer_area.get("width", 0) + 20
-                        )
-                        grading_y = (
-                            answer_area.get("y", 0) + answer_area.get("height", 0) // 2
-                        )
+                        # 没有图片尺寸信息，直接使用坐标
+                        x1, y1, x2, y2 = bbox
+
+                    grading_x = int((x2 + x1) / 2) + random.randint(0, 100)
+                    grading_y = int((y2 + y1) / 2)
 
                     question_positions.append(
                         {
@@ -1227,6 +1212,9 @@ class MathHelperApp:
                             "width": 100,
                             "height": 100,
                             "confidence": positions.get("confidence", 0.5),
+                            # 保留尺寸信息用于后续转换
+                            "original_size": original_size,
+                            "resized_size": resized_size,
                         }
                     )
 

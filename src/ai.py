@@ -6,6 +6,8 @@ import re
 from typing import Dict, List, Optional, Any
 import logging
 from openai import OpenAI
+from PIL import Image
+import random
 from src.knowledge_base import knowledge_base, KnowledgePoint
 
 
@@ -644,92 +646,53 @@ OCR文本：
         return []
 
     def detect_question_areas(
-        self, image_path: str, practice_data: Dict[str, Any]
+        self,
+        image_path: str,
+        practice_data: Dict[str, Any] = None,
+        resize_size: int = 1000,
     ) -> List[Dict[str, Any]]:
         """
-        检测图片中的题目区域
+        检测图片中的题目区域（简化版本）
 
         Args:
             image_path: 图片路径
-            practice_data: 练习数据，包含题目信息
+            practice_data: 练习数据（可选，不使用）
+            resize_size: 图片缩放尺寸（默认 1000x1000）
 
         Returns:
-            题目区域信息列表，包含题号、位置坐标等
+            题目区域信息列表，包含题号、位置坐标等（像素坐标）
+            注意：坐标是基于 resize 后的图片，包含 original_size 和 resized_size 信息用于还原
         """
         try:
-            # 编码图片为base64
-            with open(image_path, "rb") as image_file:
+            # 获取原始图片尺寸
+            with Image.open(image_path) as img:
+                original_width, original_height = img.size
+
+            # Resize 图片
+            resized_path = self._resize_image(image_path, resize_size)
+
+            # 编码图片为 base64
+            with open(resized_path, "rb") as image_file:
                 base64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
-            # 构建题目信息供AI参考
-            question_info = self._build_question_info(practice_data)
+            # 简化的 prompt
+            prompt = """定位试卷图片中所有题目区域，输出为二维线框坐标（像素坐标），按照以下 JSON 结构返回：
 
-            # 构建prompt
-            prompt = self._build_detection_prompt(question_info)
+{
+  "question_areas": [
+    {
+      "question_number": "题目编号",
+      "bbox_2d": [x1, y1, x2, y2]
+    }
+  ]
+}
 
-            # 定义 JSON Schema
-            response_format = {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "question_detection",
-                    "strict": True,
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "question_areas": {
-                                "type": "array",
-                                "description": "检测到的题目区域列表",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "question_number": {
-                                            "type": "string",
-                                            "description": "题目编号",
-                                        },
-                                        "question_type": {
-                                            "type": "string",
-                                            "enum": ["choice", "calculation"],
-                                            "description": "题目类型",
-                                        },
-                                        "bbox_2d": {
-                                            "type": "array",
-                                            "description": "题目区域归一化坐标 [x1, y1, x2, y2]",
-                                            "items": {"type": "number"},
-                                            "minItems": 4,
-                                            "maxItems": 4,
-                                        },
-                                        "answer_bbox_2d": {
-                                            "type": "array",
-                                            "description": "答案区域归一化坐标 [x1, y1, x2, y2]",
-                                            "items": {"type": "number"},
-                                            "minItems": 4,
-                                            "maxItems": 4,
-                                        },
-                                        "confidence": {
-                                            "type": "number",
-                                            "description": "识别置信度 (0-1)",
-                                            "minimum": 0,
-                                            "maximum": 1,
-                                        },
-                                    },
-                                    "required": [
-                                        "question_number",
-                                        "question_type",
-                                        "bbox_2d",
-                                        "answer_bbox_2d",
-                                        "confidence",
-                                    ],
-                                    "additionalProperties": False,
-                                },
-                            },
-                        },
-                        "required": ["image_width", "image_height", "question_areas"],
-                        "additionalProperties": False,
-                    },
-                },
-            }
+要求：
+- bbox_2d 是题目区域的矩形坐标，[x1, y1, x2, y2] 为像素坐标（整数）
+- question_number 为题目编号（如 "1", "2" 等）
+- 只返回 JSON，不要其他说明"""
 
-            # 调用qwen-vl-plus模型
+            # 构建消息
             messages = [
                 {
                     "role": "user",
@@ -748,52 +711,203 @@ OCR文本：
                 }
             ]
 
-            # 尝试使用结构化输出
-            try:
-                response = self.ai_client.chat.completions.create(
-                    model="qwen-vl-plus",
-                    messages=messages,
-                    response_format=response_format,
-                    max_tokens=2000,
-                    temperature=0.1,
-                )
-                self.logger.info("使用结构化输出 (JSON Schema) 模式")
-            except Exception as schema_error:
-                # 如果不支持 JSON Schema，回退到普通模式
-                self.logger.warning(
-                    f"JSON Schema 模式不支持，回退到普通模式: {schema_error}"
-                )
-                response = self.ai_client.chat.completions.create(
-                    model="qwen-vl-plus",
-                    messages=messages,
-                    max_tokens=2000,
-                    temperature=0.1,
-                )
+            self.logger.info(
+                f"使用简化 prompt 检测题目区域，原始尺寸: {original_width}x{original_height}, resize 尺寸: {resize_size}x{resize_size}"
+            )
+
+            # 调用 AI 模型（不使用 JSON Schema）
+            response = self.ai_client.chat.completions.create(
+                model="qwen-vl-max",
+                messages=messages,
+                max_tokens=2000,
+                temperature=0.1,
+            )
 
             response_text = response.choices[0].message.content
             self.logger.info(f"AI模型返回结果长度: {len(response_text)} 字符")
-            self.logger.debug(f"AI模型返回内容: {response_text[:500]}...")
 
-            # 解析AI返回的结果
-            question_areas = self._parse_detection_result(response_text, practice_data)
+            # 清理 markdown 代码块标记
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.startswith("```"):
+                response_text = response_text[3:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            response_text = response_text.strip()
+
+            # 解析 JSON
+            result = json.loads(response_text)
+            question_areas = result.get("question_areas", [])
+
+            # 为每个区域添加默认字段和尺寸信息
+            for area in question_areas:
+                # 添加尺寸信息用于坐标转换
+                area["original_size"] = [original_width, original_height]
+                area["resized_size"] = [resize_size, resize_size]
+
+                if "answer_bbox_2d" not in area:
+                    # 默认答案区域为题目区域的下半部分
+                    bbox = area.get("bbox_2d", [0, 0, 0, 0])
+                    if len(bbox) == 4:
+                        x1, y1, x2, y2 = bbox
+                        answer_y1 = y1 + int((y2 - y1) * 0.6)
+                        area["answer_bbox_2d"] = [x1, answer_y1, x2, y2]
+                    else:
+                        area["answer_bbox_2d"] = [0, 0, 0, 0]
+
+                if "question_type" not in area:
+                    area["question_type"] = "unknown"
+                if "confidence" not in area:
+                    area["confidence"] = 0.8
 
             self.logger.info(f"检测到 {len(question_areas)} 个题目区域")
             if question_areas:
                 for i, area in enumerate(question_areas):
                     self.logger.info(
-                        f"题目 {i+1}: {area.get('question_number', 'N/A')} - 类型: {area.get('question_type', 'N/A')}"
+                        f"题目 {i + 1}: {area.get('question_number', 'N/A')} - 坐标(resize): {area.get('bbox_2d', 'N/A')}"
                     )
             else:
                 self.logger.warning("未检测到任何题目区域")
 
             return question_areas
 
+        except json.JSONDecodeError as e:
+            self.logger.error(f"JSON 解析失败: {e}")
+            self.logger.error(
+                f"响应内容: {response_text[:500] if 'response_text' in locals() else 'N/A'}"
+            )
+            return []
         except Exception as e:
             self.logger.error(f"题目区域检测失败: {e}")
             import traceback
 
             self.logger.error(traceback.format_exc())
             return []
+
+    def _resize_image(self, image_path: str, target_size: int = 1000) -> str:
+        """
+        将图片缩放为指定尺寸（正方形）
+
+        Args:
+            image_path: 原始图片路径
+            target_size: 目标尺寸（默认 1000）
+
+        Returns:
+            缩放后的图片路径
+        """
+        img = Image.open(image_path)
+        original_size = img.size
+
+        # 直接缩放到目标尺寸（不保持宽高比）
+        resized_img = img.resize((target_size, target_size), Image.Resampling.LANCZOS)
+
+        # 保存缩放后的图片（临时文件）
+        import tempfile
+
+        # 获取文件扩展名
+        _, ext = os.path.splitext(image_path)
+        if not ext:
+            ext = ".jpg"
+
+        # 创建临时文件
+        temp_fd, temp_path = tempfile.mkstemp(suffix=ext, prefix="resized_")
+        os.close(temp_fd)
+
+        # 保存图片
+        resized_img.save(temp_path, quality=95)
+
+        self.logger.info(
+            f"图片已缩放: {original_size} -> ({target_size}, {target_size})"
+        )
+        self.logger.debug(f"缩放后图片路径: {temp_path}")
+
+        return temp_path
+
+    @staticmethod
+    def convert_coords_to_original(
+        bbox: List[int], original_size: List[int], resized_size: List[int]
+    ) -> List[int]:
+        """
+        将 resize 后的坐标转换回原始图片坐标
+
+        Args:
+            bbox: resize 后的坐标 [x1, y1, x2, y2]
+            original_size: 原始图片尺寸 [width, height]
+            resized_size: resize 后的尺寸 [width, height]
+
+        Returns:
+            原始图片坐标 [x1, y1, x2, y2]
+        """
+        if len(bbox) != 4 or len(original_size) != 2 or len(resized_size) != 2:
+            print(
+                f"⚠️ 坐标转换参数错误: bbox={bbox}, orig={original_size}, resized={resized_size}"
+            )
+            return bbox
+
+        x1, y1, x2, y2 = bbox
+        orig_w, orig_h = original_size
+        resized_w, resized_h = resized_size
+
+        # 计算缩放比例
+        scale_x = orig_w / resized_w
+        scale_y = orig_h / resized_h
+
+        print(f"🔧 坐标转换:")
+        print(f"   输入坐标: [{x1}, {y1}, {x2}, {y2}]")
+        print(f"   原始尺寸: {orig_w} x {orig_h}")
+        print(f"   Resize尺寸: {resized_w} x {resized_h}")
+        print(f"   缩放比例: x={scale_x:.2f}, y={scale_y:.2f}")
+
+        # 转换坐标
+        orig_x1 = int(x1 * scale_x)
+        orig_y1 = int(y1 * scale_y)
+        orig_x2 = int(x2 * scale_x)
+        orig_y2 = int(y2 * scale_y)
+
+        print(f"   输出坐标: [{orig_x1}, {orig_y1}, {orig_x2}, {orig_y2}]")
+
+        return [orig_x1, orig_y1, orig_x2, orig_y2]
+
+    @staticmethod
+    def convert_question_areas_to_original(
+        question_areas: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """
+        将检测结果中的所有坐标转换回原始图片坐标
+
+        Args:
+            question_areas: 检测结果列表（包含 original_size 和 resized_size）
+
+        Returns:
+            转换后的检测结果列表
+        """
+        converted_areas = []
+
+        for area in question_areas:
+            converted_area = area.copy()
+
+            original_size = area.get("original_size")
+            resized_size = area.get("resized_size")
+
+            if original_size and resized_size:
+                # 转换题目区域坐标
+                if "bbox_2d" in area:
+                    converted_area["bbox_2d"] = AIProcessor.convert_coords_to_original(
+                        area["bbox_2d"], original_size, resized_size
+                    )
+
+                # 转换答案区域坐标
+                if "answer_bbox_2d" in area:
+                    converted_area["answer_bbox_2d"] = (
+                        AIProcessor.convert_coords_to_original(
+                            area["answer_bbox_2d"], original_size, resized_size
+                        )
+                    )
+
+            converted_areas.append(converted_area)
+
+        return converted_areas
 
     def get_question_positions_for_grading(
         self,
@@ -807,14 +921,14 @@ OCR文本：
         获取用于批改标记的题目位置信息
 
         Args:
-            image_width: 图片宽度（像素）
-            image_height: 图片高度（像素）
+            image_width: 目标图片宽度（像素）- 通常是原始图片尺寸
+            image_height: 目标图片高度（像素）- 通常是原始图片尺寸
             question_areas: 已检测的题目区域列表（优先使用）
             image_path: 图片路径（当question_areas为None时使用）
             practice_data: 练习数据（当question_areas为None时使用）
 
         Returns:
-            用于批改标记的位置信息列表
+            用于批改标记的位置信息列表（坐标已转换为目标图片尺寸）
         """
         # 如果没有提供question_areas，则尝试检测
         if question_areas is None:
@@ -830,27 +944,70 @@ OCR文本：
             self.logger.warning("question_areas为空，无法生成批改位置")
             return []
 
+        # 检查是否需要坐标转换
+        # 如果 question_areas 包含 original_size 和 resized_size，说明是 resize 后的坐标
+        needs_conversion = False
+        if (
+            question_areas
+            and "original_size" in question_areas[0]
+            and "resized_size" in question_areas[0]
+        ):
+            original_size = question_areas[0]["original_size"]
+            resized_size = question_areas[0]["resized_size"]
+
+            self.logger.info(f"原始图片尺寸（从检测结果）: {original_size}")
+            self.logger.info(f"Resize 后尺寸（从检测结果）: {resized_size}")
+            self.logger.info(f"目标尺寸（参数传入）: ({image_width}, {image_height})")
+
+            # 打印第一个坐标作为示例
+            if question_areas:
+                sample_bbox = question_areas[0].get("bbox_2d", [])
+                self.logger.info(f"示例坐标（转换前）: {sample_bbox}")
+
+            # 检查目标尺寸是否与 resized_size 一致
+            if (image_width, image_height) != tuple(resized_size):
+                needs_conversion = True
+                self.logger.info(
+                    f"检测到坐标需要转换: resize({resized_size}) -> target({image_width}x{image_height})"
+                )
+            else:
+                self.logger.info("目标尺寸与 resize 尺寸一致，无需转换")
+
+        # 如果需要转换，先转换坐标
+        if needs_conversion:
+            # 转换到原始尺寸
+            question_areas_converted = self.convert_question_areas_to_original(
+                question_areas
+            )
+
+            # 打印转换后的坐标
+            if question_areas_converted:
+                sample_bbox_converted = question_areas_converted[0].get("bbox_2d", [])
+                self.logger.info(f"示例坐标（转换后）: {sample_bbox_converted}")
+        else:
+            question_areas_converted = question_areas
+
         # 转换为批改标记需要的格式
         grading_positions = []
 
-        for area in question_areas:
+        for area in question_areas_converted:
             bbox_2d = area.get("bbox_2d", [0, 0, 0, 0])
             answer_bbox_2d = area.get("answer_bbox_2d", [0, 0, 0, 0])
 
-            # 将题目区域归一化坐标转换为像素坐标
-            question_x1 = bbox_2d[0] * image_width
-            question_y1 = bbox_2d[1] * image_height
-            question_x2 = bbox_2d[2] * image_width
-            question_y2 = bbox_2d[3] * image_height
+            # bbox_2d 现在是目标尺寸的像素坐标，直接使用
+            question_x1 = bbox_2d[0]
+            question_y1 = bbox_2d[1]
+            question_x2 = bbox_2d[2]
+            question_y2 = bbox_2d[3]
 
-            # 标记位置：放在题目区域的中心
-            # 这样标记会直接显示在题目区域的正中央
-            # x = (question_x1 + question_x2) / 2  # 题目区域水平中心
-            # y = (question_y1 + question_y2) / 2  # 题目区域垂直中心
-            x = question_x1
-            y = question_y2
+            # 标记位置：放在题目区域的左下角
+            # x = question_x1
+            # y = question_y2
 
-            print("mark position", x, y)
+            x = (question_x1 + question_x2) / 2 + random.randint(0, 100)
+            y = (question_y1 + question_y2) / 2
+
+            self.logger.debug(f"批改标记位置: ({x}, {y})")
 
             grading_position = {
                 "question_number": area.get("question_number", ""),
@@ -901,7 +1058,7 @@ OCR文本：
 
             # 如果位置信息数量与题目数量匹配，按顺序对应
             if len(question_areas) == total_questions:
-                print(f"✅ 数量匹配，按顺序保存位置信息")
+                print("✅ 数量匹配，按顺序保存位置信息")
 
                 # 按顺序遍历所有题目
                 position_index = 0
@@ -921,7 +1078,7 @@ OCR文本：
                             position_index += 1
             else:
                 # 如果数量不匹配，回退到旧的匹配逻辑（按题目类型和序号）
-                print(f"⚠️ 数量不匹配，使用旧的匹配逻辑（按题目类型和序号）")
+                print("⚠️ 数量不匹配，使用旧的匹配逻辑（按题目类型和序号）")
 
                 # 按题目类型和序号组织位置信息
                 positions_by_type_and_number = {}
@@ -992,7 +1149,9 @@ OCR文本：
 
         return {"total_questions": total_questions, "sections": sections_info}
 
-    def _build_detection_prompt(self, question_info: Dict[str, Any]) -> str:
+    def _build_detection_prompt(
+        self, question_info: Dict[str, Any], image_width: int, image_height: int
+    ) -> str:
         """构建检测prompt"""
         # 构建题目概述
         total_questions = question_info.get("total_questions", 0)
@@ -1013,6 +1172,8 @@ OCR文本：
         print("sections_summary", sections_summary, "total_questions", total_questions)
 
         return f"""获取图片中所有题目区域的位置坐标，共有 {total_questions} 道题   
+图片尺寸：{image_width} x {image_height} 像素
+
 试卷结构：
 {sections_summary}
 
@@ -1035,7 +1196,7 @@ OCR文本：
 }}
 
 要求：
-1. 坐标使用归一化坐标（0-1范围），相对于图片宽度和高度
+1. 坐标使用绝对像素坐标（整数），范围是 0 到 {image_width}（宽度）和 0 到 {image_height}（高度）
 2. **必须识别出所有 {total_questions} 道题目，question_areas 数组的长度应该等于 {total_questions}**
    - 为每道题确定一个矩形区域，包含题目和答题内容，边界一定不要过大，可以适当缩小。
    - 题目的区域不可重叠。
@@ -1083,12 +1244,12 @@ OCR文本：
             # 验证和清理结果
             validated_areas = []
             for i, area in enumerate(question_areas):
-                self.logger.debug(f"验证题目区域 {i+1}: {area}")
+                self.logger.debug(f"验证题目区域 {i + 1}: {area}")
                 if self._validate_question_area(area):
                     validated_areas.append(area)
-                    self.logger.info(f"题目区域 {i+1} 验证通过")
+                    self.logger.info(f"题目区域 {i + 1} 验证通过")
                 else:
-                    self.logger.warning(f"题目区域 {i+1} 验证失败，跳过")
+                    self.logger.warning(f"题目区域 {i + 1} 验证失败，跳过")
 
             self.logger.info(f"最终验证通过 {len(validated_areas)} 个题目区域")
 
@@ -1110,9 +1271,9 @@ OCR文本：
         except json.JSONDecodeError as e:
             self.logger.error(f"解析检测结果JSON失败: {e}")
             self.logger.error(
-                f"清理后的文本: {clean_text[:500] if 'clean_text' in locals() else 'N/A'}..."
+                f"清理后的文本: {clean_text if 'clean_text' in locals() else 'N/A'}..."
             )
-            self.logger.error(f"原始响应文本: {response_text[:500]}...")
+            self.logger.error(f"原始响应文本: {response_text[:]}...")
             return []
         except Exception as e:
             self.logger.error(f"解析检测结果失败: {e}")
@@ -1131,7 +1292,6 @@ OCR文本：
                 self.logger.warning(f"缺少必需字段: {field}")
                 return False
 
-        # 验证bbox_2d数据（归一化坐标）
         bbox_2d = area.get("bbox_2d", [])
         answer_bbox_2d = area.get("answer_bbox_2d", [])
 
@@ -1146,23 +1306,7 @@ OCR文本：
             )
             return False
 
-        # 验证归一化坐标范围（0-1）
         try:
-            for i, val in enumerate(bbox_2d):
-                coord_val = float(val)
-                if coord_val < 0 or coord_val > 1:
-                    self.logger.warning(f"bbox_2d[{i}]={coord_val} 超出归一化范围[0,1]")
-                    return False
-
-            for i, val in enumerate(answer_bbox_2d):
-                coord_val = float(val)
-                if coord_val < 0 or coord_val > 1:
-                    self.logger.warning(
-                        f"answer_bbox_2d[{i}]={coord_val} 超出归一化范围[0,1]"
-                    )
-                    return False
-
-            # 验证坐标逻辑正确性（x1 < x2, y1 < y2）
             if bbox_2d[0] >= bbox_2d[2] or bbox_2d[1] >= bbox_2d[3]:
                 self.logger.warning(
                     f"bbox_2d坐标逻辑错误: x1={bbox_2d[0]} >= x2={bbox_2d[2]} 或 y1={bbox_2d[1]} >= y2={bbox_2d[3]}"
