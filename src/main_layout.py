@@ -1339,8 +1339,47 @@ def create_web_app_layout():
 
     # 自定义 CSS 样式
     custom_css = """
+    :root {
+        --radius: 0.5rem;
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 262 83% 58%;
+        --primary-foreground: 0 0% 100%;
+        --primary-light: 262 83% 68%;
+        --secondary: 217 91% 60%;
+        --secondary-foreground: 0 0% 100%;
+        --accent: 280 65% 60%;
+        --accent-foreground: 0 0% 100%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 262 83% 58%;
+        --chart-1: 262 83% 58%;
+        --chart-2: 217 91% 60%;
+        --chart-3: 280 65% 60%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+        --sidebar-background: 0 0% 98%;
+        --sidebar-foreground: 222.2 84% 4.9%;
+        --sidebar-primary: 262 83% 58%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 210 40% 96.1%;
+        --sidebar-accent-foreground: 222.2 84% 4.9%;
+        --sidebar-border: 214.3 31.8% 91.4%;
+        --sidebar-ring: 262 83% 58%;
+        --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(217 91% 60%));
+        --gradient-card: linear-gradient(135deg, hsl(262 83% 95%), hsl(217 91% 95%));
+    }
+    
     .header-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--gradient-primary);
         padding: 15px 20px;
         border-radius: 10px;
         margin-bottom: 20px;
@@ -1355,7 +1394,7 @@ def create_web_app_layout():
     }
     
     .nav-container {
-        background: #f8f9fa;
+        background: hsl(var(--sidebar-background));
         border-radius: 10px;
         padding: 20px;
         margin-right: 20px;
@@ -1376,15 +1415,15 @@ def create_web_app_layout():
     }
     
     .nav-item:hover {
-        background: #e3f2fd;
-        border-left-color: #2196f3;
+        background: hsl(var(--sidebar-accent));
+        border-left-color: hsl(var(--primary));
         transform: translateX(5px);
     }
     
     .nav-item.active {
-        background: #2196f3;
-        color: white;
-        border-left-color: #1976d2;
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-left-color: hsl(var(--primary));
     }
     
     .main-content {
@@ -1410,7 +1449,7 @@ def create_web_app_layout():
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--gradient-primary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1443,28 +1482,28 @@ def create_web_app_layout():
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        background: var(--gradient-primary);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
         color: white;
         font-weight: bold;
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        box-shadow: 0 4px 12px hsla(var(--primary), 0.3);
         border: 3px solid rgba(255, 255, 255, 0.8);
         transition: all 0.3s ease;
     }
     
     .welcome-avatar:hover {
         transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        box-shadow: 0 6px 20px hsla(var(--primary), 0.4);
     }
     
     .welcome-container {
-        background: #e8f5e8;
+        background: var(--gradient-card);
         padding: 20px;
         border-radius: 15px;
-        border-left: 4px solid #4caf50;
+        border-left: 4px solid hsl(var(--primary));
         display: flex;
         align-items: center;
         gap: 15px;
@@ -1527,11 +1566,11 @@ def create_web_app_layout():
     }
     
     .nav-button:hover {
-        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-        border-left-color: #2196f3;
+        background: hsl(var(--sidebar-accent));
+        border-left-color: hsl(var(--primary));
         transform: translateX(8px) translateY(-2px);
-        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.15);
-        color: #1976d2;
+        box-shadow: 0 6px 20px hsla(var(--primary), 0.15);
+        color: hsl(var(--primary));
     }
     
     .nav-button:hover::before {
@@ -1539,31 +1578,31 @@ def create_web_app_layout():
     }
     
     .nav-button.active {
-        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        color: white;
-        border-left-color: #0d47a1;
-        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-left-color: hsl(var(--primary));
+        box-shadow: 0 6px 20px hsla(var(--primary), 0.4);
         transform: translateX(5px);
     }
     
     .nav-button.active:hover {
-        background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+        background: hsl(var(--primary-light));
         transform: translateX(8px) translateY(-2px);
     }
     
     .nav-container {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: hsl(var(--sidebar-background));
         border-radius: 15px;
         padding: 25px 20px;
         margin-right: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         min-height: 500px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid hsl(var(--sidebar-border));
     }
     
     .nav-title {
-        color: #2c3e50;
-        border-bottom: 3px solid #2196f3;
+        color: hsl(var(--sidebar-foreground));
+        border-bottom: 3px solid hsl(var(--primary));
         padding-bottom: 12px;
         margin-bottom: 25px;
         font-size: 18px;
@@ -1581,106 +1620,106 @@ def create_web_app_layout():
         transform: translateX(-50%);
         width: 30px;
         height: 3px;
-        background: linear-gradient(90deg, #2196f3, #1976d2);
+        background: var(--gradient-primary);
         border-radius: 2px;
     }
     
     /* 工作区组件样式统一 */
     .gradio-container {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: hsl(var(--background));
         min-height: 100vh;
     }
     
     /* 输入框样式 */
     .gradio-textbox, .gradio-textbox textarea {
-        background: #f8f9fa !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
+        background: hsl(var(--input)) !important;
+        border: 1px solid hsl(var(--border)) !important;
+        border-radius: var(--radius) !important;
         transition: all 0.3s ease !important;
     }
     
     .gradio-textbox:focus-within, .gradio-textbox textarea:focus {
-        border-color: #2196f3 !important;
-        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1) !important;
+        border-color: hsl(var(--ring)) !important;
+        box-shadow: 0 0 0 2px hsla(var(--ring), 0.1) !important;
     }
     
     /* 按钮样式 */
     .gradio-button {
-        background: #2196f3 !important;
-        color: white !important;
+        background: hsl(var(--primary)) !important;
+        color: hsl(var(--primary-foreground)) !important;
         border: none !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius) !important;
         padding: 12px 24px !important;
         font-weight: 500 !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2) !important;
+        box-shadow: 0 2px 4px hsla(var(--primary), 0.2) !important;
     }
     
     .gradio-button:hover {
-        background: #1976d2 !important;
+        background: hsl(var(--primary-light)) !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3) !important;
+        box-shadow: 0 4px 8px hsla(var(--primary), 0.3) !important;
     }
     
     .gradio-button.secondary {
-        background: #f8f9fa !important;
-        color: #333 !important;
-        border: 1px solid #e9ecef !important;
+        background: hsl(var(--muted)) !important;
+        color: hsl(var(--foreground)) !important;
+        border: 1px solid hsl(var(--border)) !important;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     }
     
     .gradio-button.secondary:hover {
-        background: #e3f2fd !important;
-        border-color: #2196f3 !important;
-        color: #1976d2 !important;
+        background: hsl(var(--sidebar-accent)) !important;
+        border-color: hsl(var(--primary)) !important;
+        color: hsl(var(--primary)) !important;
     }
     
     /* 滑块样式 */
     .gradio-slider {
-        background: #e3f2fd !important;
+        background: hsl(var(--muted)) !important;
     }
     
     .gradio-slider .slider-track {
-        background: linear-gradient(90deg, #2196f3, #1976d2) !important;
+        background: var(--gradient-primary) !important;
         border-radius: 4px !important;
     }
     
     .gradio-slider .slider-handle {
-        background: #2196f3 !important;
+        background: hsl(var(--primary)) !important;
         border: 2px solid white !important;
-        box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3) !important;
+        box-shadow: 0 2px 6px hsla(var(--primary), 0.3) !important;
     }
     
     /* 下拉框样式 */
     .gradio-dropdown {
-        background: #f8f9fa !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
+        background: hsl(var(--input)) !important;
+        border: 1px solid hsl(var(--border)) !important;
+        border-radius: var(--radius) !important;
     }
     
     .gradio-dropdown:focus-within {
-        border-color: #2196f3 !important;
-        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1) !important;
+        border-color: hsl(var(--ring)) !important;
+        box-shadow: 0 0 0 2px hsla(var(--ring), 0.1) !important;
     }
     
     /* 图片上传区域样式 */
     .gradio-image {
-        border: 2px dashed #e9ecef !important;
-        border-radius: 8px !important;
-        background: #f8f9fa !important;
+        border: 2px dashed hsl(var(--border)) !important;
+        border-radius: var(--radius) !important;
+        background: hsl(var(--input)) !important;
         transition: all 0.3s ease !important;
     }
     
     .gradio-image:hover {
-        border-color: #2196f3 !important;
-        background: #e3f2fd !important;
+        border-color: hsl(var(--primary)) !important;
+        background: hsl(var(--muted)) !important;
     }
     
     /* 画廊样式 */
     .gradio-gallery {
-        background: #f8f9fa !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
+        background: hsl(var(--input)) !important;
+        border: 1px solid hsl(var(--border)) !important;
+        border-radius: var(--radius) !important;
     }
     
     /* 标签样式 */
@@ -1692,9 +1731,9 @@ def create_web_app_layout():
     
     /* 面板样式 */
     .gradio-panel {
-        background: white !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 10px !important;
+        background: hsl(var(--card)) !important;
+        border: 1px solid hsl(var(--border)) !important;
+        border-radius: var(--radius) !important;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     }
     
@@ -1713,13 +1752,13 @@ def create_web_app_layout():
         margin: 1px 0 !important;
         margin-left: 10% !important;
         padding: 10px 12px !important;
-        background: #f8f9fa !important;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
+        background: hsl(var(--muted)) !important;
+        border: 1px solid hsl(var(--border)) !important;
+        border-radius: var(--radius) !important;
         text-align: left !important;
         font-size: 14px !important;
         font-weight: 500 !important;
-        color: #333 !important;
+        color: hsl(var(--foreground)) !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
         white-space: pre-line !important;
@@ -1731,15 +1770,15 @@ def create_web_app_layout():
     }
     
     .session-button:hover {
-        background: #e3f2fd !important;
-        border-color: #2196f3 !important;
-        color: #1976d2 !important;
+        background: hsl(var(--sidebar-accent)) !important;
+        border-color: hsl(var(--primary)) !important;
+        color: hsl(var(--primary)) !important;
         transform: translateX(3px) !important;
-        box-shadow: 0 3px 8px rgba(33, 150, 243, 0.2) !important;
+        box-shadow: 0 3px 8px hsla(var(--primary), 0.2) !important;
     }
     
     .session-button:active {
-        background: #bbdefb !important;
+        background: hsl(var(--muted)) !important;
         transform: translateX(1px) !important;
     }
 
@@ -1772,61 +1811,58 @@ def create_web_app_layout():
     def generate_main_page():
         return """
         <div class="main-content">
-            <h2 style="color: #333; margin-bottom: 30px;">🎓 AI 数学助手</h2>
-            <p style="color: #666; margin-bottom: 20px; font-size: 18px;">欢迎使用AI数学助手！这是一个智能化的数学练习生成和批改系统，帮助教师高效地创建、批改和分析数学练习。</p>
-            
-            <div style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
-                <h3 style="color: #1976d2; margin: 0 0 20px 0; font-size: 24px;">🎓 开始使用</h3>
-                <p style="color: #666; margin-bottom: 25px; font-size: 16px;">点击左侧导航栏的"📄 生成练习"开始创建您的第一个数学练习</p>
-                <div style="display: inline-block; background: #2196f3; color: white; padding: 12px 24px; border-radius: 25px; font-weight: 500; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">
+            <div style="background: var(--gradient-card); padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
+                <h3 style="color: hsl(var(--primary)); margin: 0 0 20px 0; font-size: 24px;">🎓 开始使用</h3>
+                <p style="color: hsl(var(--muted-foreground)); margin-bottom: 25px; font-size: 16px;">点击左侧导航栏的"📄 生成练习"开始创建您的第一个数学练习</p>
+                <div style="display: inline-block; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 12px 24px; border-radius: 25px; font-weight: 500; box-shadow: 0 4px 12px hsla(var(--primary), 0.3);">
                     → 立即开始
                 </div>
             </div>
             
-            <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="color: #333; margin: 0 0 20px 0; font-size: 20px;">📋 使用流程</h3>
+            <div style="background: hsl(var(--muted)); padding: 25px; border-radius: 15px; margin-bottom: 25px;">
+                <h3 style="color: hsl(var(--foreground)); margin: 0 0 20px 0; font-size: 20px;">📋 使用流程</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="background: #4caf50; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">1</div>
-                        <h4 style="color: #333; margin: 0 0 10px 0;">生成题目</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">输入出题要求，AI自动生成数学练习</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="background: hsl(var(--chart-1)); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">1</div>
+                        <h4 style="color: hsl(var(--foreground)); margin: 0 0 10px 0;">生成题目</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">输入出题要求，AI自动生成数学练习</p>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="background: #2196f3; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">2</div>
-                        <h4 style="color: #333; margin: 0 0 10px 0;">学生答题</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">上传学生答题图片，系统自动识别</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="background: hsl(var(--chart-2)); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">2</div>
+                        <h4 style="color: hsl(var(--foreground)); margin: 0 0 10px 0;">学生答题</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">上传学生答题图片，系统自动识别</p>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="background: #ff9800; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">3</div>
-                        <h4 style="color: #333; margin: 0 0 10px 0;">智能批改</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">AI自动批改并提供详细分析报告</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="background: hsl(var(--chart-3)); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">3</div>
+                        <h4 style="color: hsl(var(--foreground)); margin: 0 0 10px 0;">智能批改</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">AI自动批改并提供详细分析报告</p>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="background: #9c27b0; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">4</div>
-                        <h4 style="color: #333; margin: 0 0 10px 0;">针对性练习</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">基于错误分析生成专项练习</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="background: hsl(var(--accent)); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold;">4</div>
+                        <h4 style="color: hsl(var(--foreground)); margin: 0 0 10px 0;">针对性练习</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">基于错误分析生成专项练习</p>
                     </div>
                 </div>
             </div>
             
-            <div style="background: #f8f9fa; padding: 25px; border-radius: 15px;">
-                <h3 style="color: #333; margin: 0 0 20px 0; font-size: 20px;">✨ 功能特色</h3>
+            <div style="background: hsl(var(--muted)); padding: 25px; border-radius: 15px;">
+                <h3 style="color: hsl(var(--foreground)); margin: 0 0 20px 0; font-size: 20px;">✨ 功能特色</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="color: #4caf50; margin: 0 0 10px 0;">🤖 AI智能出题</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">基于知识点自动生成数学练习</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h4 style="color: hsl(var(--chart-1)); margin: 0 0 10px 0;">🤖 AI智能出题</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">基于知识点自动生成数学练习</p>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="color: #2196f3; margin: 0 0 10px 0;">📸 图片识别</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">OCR识别学生手写答案</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h4 style="color: hsl(var(--chart-2)); margin: 0 0 10px 0;">📸 图片识别</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">OCR识别学生手写答案</p>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="color: #ff9800; margin: 0 0 10px 0;">📊 智能批改</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">自动批改并提供详细分析</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h4 style="color: hsl(var(--chart-3)); margin: 0 0 10px 0;">📊 智能批改</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">自动批改并提供详细分析</p>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="color: #9c27b0; margin: 0 0 10px 0;">🎯 针对性练习</h4>
-                        <p style="margin: 0; color: #666; font-size: 14px;">基于错误生成专项练习</p>
+                    <div style="background: hsl(var(--card)); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h4 style="color: hsl(var(--accent)); margin: 0 0 10px 0;">🎯 针对性练习</h4>
+                        <p style="margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px;">基于错误生成专项练习</p>
                     </div>
                 </div>
             </div>
@@ -1837,7 +1873,7 @@ def create_web_app_layout():
     def generate_practice_page():
         return """
         <div>
-            <h2 style="color: #333; margin-bottom: 30px;">📄 生成练习</h2>
+            <h2 style="color: hsl(var(--foreground)); margin-bottom: 30px;">📄 生成练习</h2>
         </div>
         """
 
@@ -2137,7 +2173,6 @@ def create_web_app_layout():
             gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
             gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
             gr.update(visible=False),
-            gr.update(visible=True),
             gr.update(visible=False),
         )
 
@@ -2153,7 +2188,6 @@ def create_web_app_layout():
             gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
             gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
             gr.update(visible=True),
-            gr.update(visible=False),
             gr.update(visible=True),
         )
 
@@ -2168,7 +2202,6 @@ def create_web_app_layout():
             gr.Button("⚙️ 系统设置", elem_classes="nav-button", variant="secondary"),
             gr.Button("📈 数据分析", elem_classes="nav-button", variant="secondary"),
             gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
-            gr.update(visible=False),
             gr.update(visible=False),
             gr.update(visible=False),
         )
@@ -2186,7 +2219,6 @@ def create_web_app_layout():
             gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
             gr.update(visible=False),
             gr.update(visible=False),
-            gr.update(visible=False),
         )
 
     def switch_to_analytics():
@@ -2200,7 +2232,6 @@ def create_web_app_layout():
                 "📈 数据分析", elem_classes="nav-button active", variant="secondary"
             ),
             gr.Button("❓ 帮助中心", elem_classes="nav-button", variant="secondary"),
-            gr.update(visible=False),
             gr.update(visible=False),
             gr.update(visible=False),
         )
@@ -2218,7 +2249,6 @@ def create_web_app_layout():
             ),
             gr.update(visible=False),
             gr.update(visible=False),
-            gr.update(visible=False),
         )
 
     # 用户登录函数
@@ -2231,53 +2261,36 @@ def create_web_app_layout():
     # 创建界面
     # 自定义主题，与主布局风格保持一致
     custom_theme = gr.themes.Soft(
-        primary_hue="blue",
-        secondary_hue="purple",
+        primary_hue="purple",
+        secondary_hue="blue",
         neutral_hue="slate",
         font=gr.themes.GoogleFont("Inter"),
     ).set(
-        # 主要颜色
-        button_primary_background_fill="#2196f3",
-        button_primary_background_fill_hover="#1976d2",
-        button_primary_text_color="#ffffff",
-        
+        # 主要颜色 - 使用紫色主题
+        button_primary_background_fill="hsl(262, 83%, 58%)",
+        button_primary_background_fill_hover="hsl(262, 83%, 68%)",
+        button_primary_text_color="hsl(0, 0%, 100%)",
+        # 次要颜色
+        button_secondary_background_fill="hsl(217, 91%, 60%)",
+        button_secondary_background_fill_hover="hsl(217, 91%, 70%)",
+        button_secondary_text_color="hsl(0, 0%, 100%)",
         # 输入框样式
-        input_background_fill="#f8f9fa",
-        input_border_color="#e9ecef",
-        input_border_color_focus="#2196f3",
-        
+        input_background_fill="hsl(214.3, 31.8%, 91.4%)",
+        input_border_color="hsl(214.3, 31.8%, 91.4%)",
+        input_border_color_focus="hsl(262, 83%, 58%)",
         # 面板样式
-        panel_background_fill="#ffffff",
-        panel_border_color="#e9ecef",
-        
+        panel_background_fill="hsl(0, 0%, 100%)",
+        panel_border_color="hsl(214.3, 31.8%, 91.4%)",
         # 文本颜色
-        body_text_color="#333333",
-        
+        body_text_color="hsl(222.2, 84%, 4.9%)",
         # 阴影效果
         shadow_drop="0 2px 4px rgba(0, 0, 0, 0.1)",
         shadow_drop_lg="0 4px 6px rgba(0, 0, 0, 0.1)",
     )
 
-    with gr.Blocks(theme=custom_theme, css=custom_css, title="AI数学助手 - Web应用演示") as demo:
-
-        # Header 部分
-        with gr.Row():
-            with gr.Column(scale=1):
-                gr.HTML("""
-                <div class="header-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div class="logo-text">🎓 AI 数学助手</div>
-                        <div class="user-info">
-                            <div class="user-avatar">张</div>
-                            <div class="user-details">
-                                <p class="user-name">张老师</p>
-                                <p class="user-role">数学</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                """)
-
+    with gr.Blocks(
+        theme=custom_theme, css=custom_css, title="AI数学助手 - Web应用演示"
+    ) as demo:
         # 主要内容区域
         with gr.Row():
             # 左侧导航栏
@@ -2305,20 +2318,6 @@ def create_web_app_layout():
 
             # 右侧工作区
             with gr.Column(scale=4):
-                # 用户信息区域 - 仅在主页显示
-                with gr.Column(visible=True) as user_info_section:
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            gr.HTML("""
-                            <div class="welcome-container">
-                                <div class="welcome-avatar">张</div>
-                                <div>
-                                    <h3 style="margin: 0 0 8px 0; color: #2e7d32; font-size: 18px;">欢迎回来，张老师！</h3>
-                                    <p style="margin: 0; color: #666; font-size: 14px;">您已成功登录系统，可以开始使用各项功能。</p>
-                                </div>
-                            </div>
-                            """)
-
                 # 主要内容显示区域 - 默认显示主页
                 main_content = gr.HTML(generate_main_page())
 
@@ -2518,7 +2517,6 @@ def create_web_app_layout():
                 nav_analytics,
                 nav_help,
                 math_helper_section,
-                user_info_section,
                 session_buttons_container,
             ],
         )
@@ -2534,7 +2532,6 @@ def create_web_app_layout():
                 nav_analytics,
                 nav_help,
                 math_helper_section,
-                user_info_section,
                 session_buttons_container,
             ],
         )
@@ -2550,7 +2547,6 @@ def create_web_app_layout():
                 nav_analytics,
                 nav_help,
                 math_helper_section,
-                user_info_section,
                 session_buttons_container,
             ],
         )
@@ -2566,7 +2562,6 @@ def create_web_app_layout():
                 nav_analytics,
                 nav_help,
                 math_helper_section,
-                user_info_section,
                 session_buttons_container,
             ],
         )
@@ -2582,7 +2577,6 @@ def create_web_app_layout():
                 nav_analytics,
                 nav_help,
                 math_helper_section,
-                user_info_section,
                 session_buttons_container,
             ],
         )
@@ -2598,7 +2592,6 @@ def create_web_app_layout():
                 nav_analytics,
                 nav_help,
                 math_helper_section,
-                user_info_section,
                 session_buttons_container,
             ],
         )
@@ -2788,13 +2781,6 @@ def create_web_app_layout():
                     grading_result_gallery,
                 ],
             )
-
-        # 添加一些示例交互
-        gr.HTML("""
-        <div style="margin-top: 20px; padding: 20px; background: #e3f2fd; border-radius: 10px; text-align: center;">
-            <h4 style="color: #1976d2; margin-bottom: 10px;">🎉 欢迎使用 AI数学助手 Web应用演示</h4>
-        </div>
-        """)
 
     return demo
 
